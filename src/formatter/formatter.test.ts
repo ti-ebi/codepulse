@@ -238,4 +238,85 @@ describe("formatJson", () => {
     const parsed = JSON.parse(formatJson(report)) as Record<string, unknown>;
     expect(parsed["warnings"]).toEqual([]);
   });
+
+  it("includes axis name and description from registry in each axis entry", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "dead-code",
+          summary: [],
+          files: [],
+        },
+      ],
+    });
+
+    const parsed = JSON.parse(formatJson(report)) as Record<string, unknown>;
+    const axes = parsed["axes"] as Array<Record<string, unknown>>;
+    expect(axes).toHaveLength(1);
+
+    const axis = axes[0]!;
+    expect(axis["axisId"]).toBe("dead-code");
+    expect(axis["axisName"]).toBe("Dead Code");
+    expect(axis["axisDescription"]).toBe(
+      "Unused exports, unreachable code, orphaned files",
+    );
+  });
+
+  it("includes axis name and description for all known axes", () => {
+    const report = makeReport({
+      axes: [
+        { axisId: "complexity", summary: [], files: [] },
+        { axisId: "size", summary: [], files: [] },
+        { axisId: "dependency-health", summary: [], files: [] },
+      ],
+    });
+
+    const parsed = JSON.parse(formatJson(report)) as Record<string, unknown>;
+    const axes = parsed["axes"] as Array<Record<string, unknown>>;
+
+    expect(axes[0]!["axisName"]).toBe("Complexity");
+    expect(axes[0]!["axisDescription"]).toBe(
+      "Cyclomatic/cognitive complexity per function and file",
+    );
+
+    expect(axes[1]!["axisName"]).toBe("Size");
+    expect(axes[1]!["axisDescription"]).toBe(
+      "Lines of code, file count, function length distribution",
+    );
+
+    expect(axes[2]!["axisName"]).toBe("Dependency Health");
+    expect(axes[2]!["axisDescription"]).toBe(
+      "Dependency graph depth, circular dependencies",
+    );
+  });
+
+  it("falls back to axisId for name when axis is unknown", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "unknown-axis" as import("../types/axis.js").AxisId,
+          summary: [],
+          files: [],
+        },
+      ],
+    });
+
+    const parsed = JSON.parse(formatJson(report)) as Record<string, unknown>;
+    const axes = parsed["axes"] as Array<Record<string, unknown>>;
+    const axis = axes[0]!;
+    expect(axis["axisName"]).toBe("unknown-axis");
+    expect(axis["axisDescription"]).toBe("");
+  });
+
+  it("includes axis name in warning entries", () => {
+    const report = makeReport({
+      warnings: [
+        { axisId: "security", message: 'No available adapter for axis "security"' },
+      ],
+    });
+
+    const parsed = JSON.parse(formatJson(report)) as Record<string, unknown>;
+    const warnings = parsed["warnings"] as Array<Record<string, unknown>>;
+    expect(warnings[0]!["axisName"]).toBe("Security");
+  });
 });

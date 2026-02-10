@@ -49,7 +49,7 @@ Each axis is independent -- run any subset or all at once.
 |---|---|
 | **Terminal (compact)** | Summary table for quick review |
 | **Terminal (rich)** | Detailed breakdown with visual indicators |
-| **JSON** | Machine-readable with metric metadata (unit, range, interpretation guidance) |
+| **JSON** | Machine-readable with axis metadata (name, description) and metric metadata (unit, range, interpretation guidance) |
 | **HTML** | Self-contained static dashboard, no server required |
 | **MCP Server** | Structured access for AI agents via Model Context Protocol (stdio) |
 
@@ -109,7 +109,7 @@ The `measure` tool accepts:
 - `targetPath` (required) -- absolute path to the directory to measure
 - `axes` (optional) -- array of measurement axes to run
 
-Returns a structured JSON report with full metric metadata (units, ranges, interpretation guidance).
+Returns a structured JSON report with axis metadata (name, description) and metric metadata (units, ranges, interpretation guidance).
 
 ---
 
