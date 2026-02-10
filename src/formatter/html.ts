@@ -81,8 +81,10 @@ function renderAxis(axis: AxisMeasurement): string {
   }
 
   if (axis.files.length > 0) {
-    lines.push(`<div class="files-section">`);
-    lines.push(`<h3>Files</h3>`);
+    const fileCount = axis.files.length;
+    const fileLabel = fileCount === 1 ? "1 file" : `${fileCount} files`;
+    lines.push(`<details class="files-section">`);
+    lines.push(`<summary class="files-toggle">${fileLabel}</summary>`);
     for (const file of axis.files) {
       lines.push(`<div class="file-entry">`);
       lines.push(`<div class="file-path">${escapeHtml(file.filePath)}</div>`);
@@ -97,7 +99,7 @@ function renderAxis(axis: AxisMeasurement): string {
       }
       lines.push(`</div>`);
     }
-    lines.push(`</div>`);
+    lines.push(`</details>`);
   }
 
   lines.push(`</section>`);
@@ -183,11 +185,24 @@ const CSS = `
       padding-top: 0.75rem;
       border-top: 1px solid #21262d;
     }
-    .files-section h3 {
+    .files-toggle {
       color: #8b949e;
       font-size: 0.8125rem;
       text-transform: uppercase;
+      cursor: pointer;
       margin-bottom: 0.5rem;
+      list-style: none;
+    }
+    .files-toggle::-webkit-details-marker { display: none; }
+    .files-toggle::before {
+      content: "\\25B6";
+      display: inline-block;
+      margin-right: 0.375rem;
+      font-size: 0.625rem;
+      transition: transform 0.15s;
+    }
+    details[open] > .files-toggle::before {
+      transform: rotate(90deg);
     }
     .file-entry { margin-bottom: 0.5rem; }
     .file-path {

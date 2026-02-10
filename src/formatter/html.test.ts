@@ -486,4 +486,107 @@ describe("formatHtml", () => {
     expect(output).toContain("Fixed Metric");
     expect(output).toContain("5");
   });
+
+  it("wraps file listings in a collapsible <details> element", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "complexity",
+          summary: [],
+          files: [
+            {
+              filePath: "/project/src/main.ts",
+              metrics: [
+                {
+                  descriptor: {
+                    id: "cyclomatic",
+                    name: "Cyclomatic Complexity",
+                    unit: "count",
+                    min: 1,
+                    max: null,
+                    interpretation: "Linearly independent paths",
+                  },
+                  value: 12,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    expect(output).toContain("<details");
+    expect(output).toContain("<summary");
+    expect(output).toContain("</summary>");
+    expect(output).toContain("</details>");
+  });
+
+  it("shows file count in the collapsible summary", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "complexity",
+          summary: [],
+          files: [
+            {
+              filePath: "/project/src/a.ts",
+              metrics: [],
+            },
+            {
+              filePath: "/project/src/b.ts",
+              metrics: [],
+            },
+            {
+              filePath: "/project/src/c.ts",
+              metrics: [],
+            },
+          ],
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    expect(output).toContain("3 files");
+  });
+
+  it("uses singular 'file' when only one file is present", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "complexity",
+          summary: [],
+          files: [
+            {
+              filePath: "/project/src/only.ts",
+              metrics: [],
+            },
+          ],
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    expect(output).toContain("1 file");
+    expect(output).not.toContain("1 files");
+  });
+
+  it("does not include open attribute on details by default", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "size",
+          summary: [],
+          files: [
+            {
+              filePath: "/project/src/main.ts",
+              metrics: [],
+            },
+          ],
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    // Details should be collapsed by default (no "open" attribute)
+    const detailsMatch = output.match(/<details[^>]*>/);
+    expect(detailsMatch).not.toBeNull();
+    expect(detailsMatch![0]).not.toContain("open");
+  });
 });
