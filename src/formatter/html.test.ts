@@ -423,6 +423,42 @@ describe("formatHtml", () => {
     expect(output).toMatch(/width:\s*100%/);
   });
 
+  it("renders <thead> with column headers in file-level metrics tables", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "complexity",
+          summary: [],
+          files: [
+            {
+              filePath: "/project/src/main.ts",
+              metrics: [
+                {
+                  descriptor: {
+                    id: "cyclomatic",
+                    name: "Cyclomatic Complexity",
+                    unit: "count",
+                    min: 1,
+                    max: null,
+                    interpretation: "Linearly independent paths",
+                  },
+                  value: 12,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    // File-level tables should have <thead> just like summary tables
+    const fileTableMatch = output.match(/<table class="metrics-table file-metrics">([\s\S]*?)<\/table>/);
+    expect(fileTableMatch).not.toBeNull();
+    expect(fileTableMatch![1]).toContain("<thead>");
+    expect(fileTableMatch![1]).toContain("<th>Metric</th>");
+    expect(fileTableMatch![1]).toContain("<th>Value</th>");
+  });
+
   it("handles metric with zero range gracefully", () => {
     const report = makeReport({
       axes: [

@@ -106,6 +106,7 @@ function renderAxis(axis: AxisMeasurement): string {
       lines.push(`<div class="file-path">${escapeHtml(file.filePath)}</div>`);
       if (file.metrics.length > 0) {
         lines.push(`<table class="metrics-table file-metrics">`);
+        lines.push(`<thead><tr><th>Metric</th><th>Value</th><th></th></tr></thead>`);
         lines.push(`<tbody>`);
         for (const metric of file.metrics) {
           lines.push(renderMetricRow(metric));
