@@ -69,6 +69,7 @@ codepulse [options] <target-path>
 | `--axis <axis>` | `-a` | Measurement axis to run (repeatable). Omit to run all available axes |
 | `--output <path>` | `-o` | Write report to file instead of stdout. Format is inferred from `.json`/`.html` extension if `--format` is omitted |
 | `--top <N>` | `-n` | Limit per-axis file-level results to the top N entries. When truncated, the total file count is shown in terminal/HTML output and included as `fileTotalCount` in JSON |
+| `--sort <metric-id>` | `-s` | Sort file-level results by the named metric (descending). Combine with `--top` to surface the most significant files first |
 | `--no-color` | | Disable ANSI color codes in terminal output (also honors `NO_COLOR` env var) |
 | `--mcp` | | Start as MCP server (stdio transport) for AI agent integration |
 | `--list-axes` | | List available measurement axes with descriptions |
@@ -96,6 +97,9 @@ codepulse -f terminal-rich -a security -a dead-code ./src
 
 # Show only the top 5 files per axis (useful for large codebases)
 codepulse --top 5 ./my-project
+
+# Show the 10 files with the most code lines across all axes
+codepulse --sort code-lines --top 10 ./my-project
 
 # List available measurement axes
 codepulse --list-axes

@@ -41,4 +41,6 @@ export interface MeasurementConfig {
   readonly noColor: boolean;
   /** Limit per-axis file-level results to the top N entries. Undefined means no limit. */
   readonly topN?: number | undefined;
+  /** Sort file-level results by this metric ID (descending). Undefined means no sorting. */
+  readonly sortMetric?: string | undefined;
 }

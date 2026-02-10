@@ -497,6 +497,185 @@ describe("run", () => {
     expect(output.axes[0].fileTotalCount).toBeUndefined();
   });
 
+  it("sorts file-level results by specified metric descending when --sort is used", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [
+        {
+          descriptor: {
+            id: "total-lines",
+            name: "Total Lines",
+            unit: "lines",
+            min: 0,
+            max: null,
+            interpretation: "Total number of lines across all files",
+          },
+          value: 500,
+        },
+      ],
+      files: [
+        {
+          filePath: "/project/small.ts",
+          metrics: [
+            {
+              descriptor: {
+                id: "code-lines",
+                name: "Code Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Lines of code in the file",
+              },
+              value: 10,
+            },
+          ],
+        },
+        {
+          filePath: "/project/large.ts",
+          metrics: [
+            {
+              descriptor: {
+                id: "code-lines",
+                name: "Code Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Lines of code in the file",
+              },
+              value: 500,
+            },
+          ],
+        },
+        {
+          filePath: "/project/medium.ts",
+          metrics: [
+            {
+              descriptor: {
+                id: "code-lines",
+                name: "Code Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Lines of code in the file",
+              },
+              value: 100,
+            },
+          ],
+        },
+      ],
+    };
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("scc", ["size"], measurementWithFiles));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "--sort", "code-lines", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = JSON.parse(deps.stdoutLines[0]!);
+    expect(output.axes[0].files).toHaveLength(3);
+    expect(output.axes[0].files[0].filePath).toBe("/project/large.ts");
+    expect(output.axes[0].files[1].filePath).toBe("/project/medium.ts");
+    expect(output.axes[0].files[2].filePath).toBe("/project/small.ts");
+  });
+
+  it("sorts files before applying --top truncation", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        {
+          filePath: "/project/small.ts",
+          metrics: [
+            {
+              descriptor: {
+                id: "code-lines",
+                name: "Code Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Lines of code in the file",
+              },
+              value: 10,
+            },
+          ],
+        },
+        {
+          filePath: "/project/large.ts",
+          metrics: [
+            {
+              descriptor: {
+                id: "code-lines",
+                name: "Code Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Lines of code in the file",
+              },
+              value: 500,
+            },
+          ],
+        },
+        {
+          filePath: "/project/medium.ts",
+          metrics: [
+            {
+              descriptor: {
+                id: "code-lines",
+                name: "Code Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Lines of code in the file",
+              },
+              value: 100,
+            },
+          ],
+        },
+      ],
+    };
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("scc", ["size"], measurementWithFiles));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "--sort", "code-lines", "--top", "2", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = JSON.parse(deps.stdoutLines[0]!);
+    expect(output.axes[0].files).toHaveLength(2);
+    expect(output.axes[0].files[0].filePath).toBe("/project/large.ts");
+    expect(output.axes[0].files[1].filePath).toBe("/project/medium.ts");
+    expect(output.axes[0].fileTotalCount).toBe(3);
+  });
+
+  it("preserves original order when --sort metric is not found in file metrics", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        { filePath: "/project/a.ts", metrics: [] },
+        { filePath: "/project/b.ts", metrics: [] },
+        { filePath: "/project/c.ts", metrics: [] },
+      ],
+    };
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("scc", ["size"], measurementWithFiles));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "--sort", "nonexistent-metric", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = JSON.parse(deps.stdoutLines[0]!);
+    expect(output.axes[0].files[0].filePath).toBe("/project/a.ts");
+    expect(output.axes[0].files[1].filePath).toBe("/project/b.ts");
+    expect(output.axes[0].files[2].filePath).toBe("/project/c.ts");
+  });
+
   it("suppresses colors when both --no-color and noColorEnv are set", async () => {
     const boundedMeasurement: AxisMeasurement = {
       axisId: "duplication",

@@ -37,6 +37,7 @@ const KNOWN_FLAGS: ReadonlySet<string> = new Set([
   "--axis",
   "--output",
   "--top",
+  "--sort",
   "--help",
   "--version",
   "--mcp",
@@ -51,6 +52,7 @@ const SHORT_TO_LONG: ReadonlyMap<string, string> = new Map([
   ["-f", "--format"],
   ["-a", "--axis"],
   ["-o", "--output"],
+  ["-s", "--sort"],
   ["-h", "--help"],
   ["-V", "--version"],
   ["-n", "--top"],
@@ -109,6 +111,7 @@ export function parseArgs(argv: readonly string[]): ParseResult {
   let targetPath: string | undefined;
   let noColor = false;
   let topN: number | undefined;
+  let sortMetric: string | undefined;
 
   let i = 0;
   while (i < expandedArgv.length) {
@@ -205,6 +208,19 @@ export function parseArgs(argv: readonly string[]): ParseResult {
       continue;
     }
 
+    if (arg === "--sort") {
+      const value = expandedArgv[i + 1];
+      if (value === undefined) {
+        return {
+          ok: false,
+          error: { kind: "error", message: `${originalArg} requires a value` },
+        };
+      }
+      sortMetric = value;
+      i += 2;
+      continue;
+    }
+
     if (arg.startsWith("-")) {
       if (!KNOWN_FLAGS.has(arg)) {
         return {
@@ -252,6 +268,7 @@ export function parseArgs(argv: readonly string[]): ParseResult {
     thresholds: [],
     noColor,
     topN,
+    sortMetric,
   };
 
   return { ok: true, value: config };
@@ -298,6 +315,7 @@ function helpText(): string {
     "  -o, --output <path>     Write output to file instead of stdout",
     "                          (format is inferred from .json/.html extension if --format is omitted)",
     "  -n, --top <N>           Limit per-axis file-level results to the top N entries",
+    "  -s, --sort <metric-id>  Sort file-level results by the named metric (descending)",
     "      --no-color          Disable ANSI color codes in terminal output (also honors NO_COLOR env var)",
     "      --mcp               Start as MCP server (stdio transport)",
     "      --list-axes         List available measurement axes",

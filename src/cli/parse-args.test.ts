@@ -491,6 +491,62 @@ describe("parseArgs", () => {
     });
   });
 
+  describe("--sort flag", () => {
+    it("defaults sortMetric to undefined when not specified", () => {
+      const result = parseArgs(["/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.sortMetric).toBeUndefined();
+    });
+
+    it("accepts --sort with a metric id", () => {
+      const result = parseArgs(["--sort", "total-lines", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.sortMetric).toBe("total-lines");
+    });
+
+    it("accepts -s as a short alias for --sort", () => {
+      const result = parseArgs(["-s", "code-lines", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.sortMetric).toBe("code-lines");
+    });
+
+    it("returns an error when --sort has no value", () => {
+      const result = parseArgs(["/project", "--sort"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("--sort requires a value");
+    });
+
+    it("returns an error when -s has no value", () => {
+      const result = parseArgs(["/project", "-s"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("-s requires a value");
+    });
+
+    it("combines with other flags", () => {
+      const result = parseArgs(["--format", "json", "--sort", "total-lines", "--top", "5", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.sortMetric).toBe("total-lines");
+      expect(result.value.topN).toBe(5);
+      expect(result.value.outputFormat).toBe("json");
+    });
+
+    it("help text mentions --sort and -s", () => {
+      const result = parseArgs(["--help"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.message).toContain("-s");
+      expect(result.error.message).toContain("--sort");
+    });
+  });
+
   describe("unknown flags", () => {
     it("returns an error for unrecognized flags", () => {
       const result = parseArgs(["--unknown", "/project"]);

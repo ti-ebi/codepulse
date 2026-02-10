@@ -58,6 +58,27 @@ function selectFormatter(format: OutputFormat): Formatter {
 }
 
 /**
+ * Returns a new report with each axis's files sorted descending by the given metric.
+ * Files that lack the metric are sorted to the end in their original order.
+ */
+function sortFiles(report: MeasurementReport, metricId: string): MeasurementReport {
+  return {
+    ...report,
+    axes: report.axes.map((axis) => {
+      const sorted = [...axis.files].sort((a, b) => {
+        const aMetric = a.metrics.find((m) => m.descriptor.id === metricId);
+        const bMetric = b.metrics.find((m) => m.descriptor.id === metricId);
+        if (aMetric === undefined && bMetric === undefined) return 0;
+        if (aMetric === undefined) return 1;
+        if (bMetric === undefined) return -1;
+        return bMetric.value - aMetric.value;
+      });
+      return { ...axis, files: sorted };
+    }),
+  };
+}
+
+/**
  * Returns a new report with each axis's files array truncated to at most `n` entries.
  * When truncation occurs, sets fileTotalCount so consumers know the full count.
  */
@@ -134,9 +155,12 @@ export async function run(
   }
 
   const rawReport: MeasurementReport = measureResult.value;
-  const report: MeasurementReport = config.topN !== undefined
-    ? limitFiles(rawReport, config.topN)
+  const sorted: MeasurementReport = config.sortMetric !== undefined
+    ? sortFiles(rawReport, config.sortMetric)
     : rawReport;
+  const report: MeasurementReport = config.topN !== undefined
+    ? limitFiles(sorted, config.topN)
+    : sorted;
   const formatter = selectFormatter(config.outputFormat);
   const noColor = config.noColor || deps.noColorEnv === true;
   const formatterOptions: FormatterOptions = { noColor };
