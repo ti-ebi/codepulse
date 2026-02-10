@@ -11,6 +11,7 @@
 import type { AxisId } from "../types/axis.js";
 import type { OutputFormat, MeasurementConfig } from "../types/config.js";
 import { AXES } from "../types/axis.js";
+import { VERSION } from "../version.js";
 
 /**
  * Non-config results from parsing: help request, version request, or error.
@@ -81,7 +82,7 @@ export function parseArgs(argv: readonly string[]): ParseResult {
   if (expandedArgv.includes("--version")) {
     return {
       ok: false,
-      error: { kind: "version", message: "codepulse 0.1.0" },
+      error: { kind: "version", message: `codepulse ${VERSION}` },
     };
   }
 

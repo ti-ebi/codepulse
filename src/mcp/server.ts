@@ -17,6 +17,7 @@ import type { MeasurementConfig } from "../types/config.js";
 import type { AdapterRegistry } from "../adapter/registry.js";
 import { measure } from "../orchestration/orchestrator.js";
 import { formatJson } from "../formatter/json.js";
+import { VERSION } from "../version.js";
 
 /**
  * Injectable dependencies for the MCP server.
@@ -93,7 +94,7 @@ export async function handleMeasureCall(
 export function createMcpServer(deps: McpServerDeps): McpServer {
   const server = new McpServer({
     name: "codepulse",
-    version: "0.1.0",
+    version: VERSION,
   });
 
   const axisIds = [...AXES.keys()];
