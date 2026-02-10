@@ -6,28 +6,10 @@
  * Depends only on the Types layer.
  */
 
-import type { AxisMeasurement, MeasurementReport, MetricValue } from "../types/measurement.js";
-import { AXES } from "../types/axis.js";
+import type { MeasurementReport, MetricValue } from "../types/measurement.js";
+import { axisName, axisDescription } from "./axis-helpers.js";
 
 const BAR_WIDTH = 20;
-
-/**
- * Returns the human-readable axis name from the AXES registry,
- * falling back to the raw axisId if not found.
- */
-function axisName(axis: AxisMeasurement): string {
-  const descriptor = AXES.get(axis.axisId);
-  return descriptor !== undefined ? descriptor.name : axis.axisId;
-}
-
-/**
- * Returns the axis description from the AXES registry,
- * or an empty string if not found.
- */
-function axisDescription(axis: AxisMeasurement): string {
-  const descriptor = AXES.get(axis.axisId);
-  return descriptor !== undefined ? descriptor.description : "";
-}
 
 /**
  * Renders a visual bar for a bounded metric (where max is not null).

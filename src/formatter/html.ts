@@ -9,7 +9,7 @@
  */
 
 import type { AxisMeasurement, MeasurementReport, MetricValue } from "../types/measurement.js";
-import { AXES } from "../types/axis.js";
+import { axisName, axisDescription } from "./axis-helpers.js";
 
 /**
  * Escapes HTML special characters to prevent XSS in rendered output.
@@ -21,24 +21,6 @@ function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-}
-
-/**
- * Returns the human-readable axis name from the AXES registry,
- * falling back to the raw axisId if not found.
- */
-function axisName(axis: AxisMeasurement): string {
-  const descriptor = AXES.get(axis.axisId);
-  return descriptor !== undefined ? descriptor.name : axis.axisId;
-}
-
-/**
- * Returns the axis description from the AXES registry,
- * or an empty string if not found.
- */
-function axisDescription(axis: AxisMeasurement): string {
-  const descriptor = AXES.get(axis.axisId);
-  return descriptor !== undefined ? descriptor.description : "";
 }
 
 /**

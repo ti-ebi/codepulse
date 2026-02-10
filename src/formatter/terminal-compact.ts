@@ -6,17 +6,8 @@
  * Depends only on the Types layer.
  */
 
-import type { AxisMeasurement, MeasurementReport } from "../types/measurement.js";
-import { AXES } from "../types/axis.js";
-
-/**
- * Returns the human-readable axis name from the AXES registry,
- * falling back to the raw axisId if not found.
- */
-function axisName(axis: AxisMeasurement): string {
-  const descriptor = AXES.get(axis.axisId);
-  return descriptor !== undefined ? descriptor.name : axis.axisId;
-}
+import type { MeasurementReport } from "../types/measurement.js";
+import { axisName } from "./axis-helpers.js";
 
 /**
  * Formats a single metric value with its unit for display.
