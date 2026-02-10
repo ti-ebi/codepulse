@@ -11,15 +11,12 @@
 import * as node_fs from "node:fs/promises";
 import * as node_process from "node:process";
 import { AdapterRegistry } from "../adapter/registry.js";
+import { createSccAdapter } from "../adapter/scc.js";
 import { run } from "./run.js";
 import type { CliDeps } from "./run.js";
 
 const registry = new AdapterRegistry();
-
-// Future: register concrete adapters here as they are implemented.
-// Example:
-//   import { sccAdapter } from "../adapter/scc.js";
-//   registry.register(sccAdapter);
+registry.register(createSccAdapter());
 
 const deps: CliDeps = {
   stdout: (text: string) => node_process.stdout.write(text + "\n"),

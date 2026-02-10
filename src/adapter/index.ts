@@ -4,3 +4,4 @@ export {
   type ToolAdapter,
 } from "./adapter.js";
 export { AdapterRegistry } from "./registry.js";
+export { createSccAdapter } from "./scc.js";
