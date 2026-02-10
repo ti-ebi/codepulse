@@ -1,0 +1,126 @@
+/**
+ * Terminal-rich formatter — renders a MeasurementReport as a detailed
+ * breakdown with visual indicators, including per-file metrics.
+ *
+ * Contrasts with terminal-compact which shows only summary-level data.
+ * Depends only on the Types layer.
+ */
+
+import type { AxisMeasurement, MeasurementReport, MetricValue } from "../types/measurement.js";
+import { AXES } from "../types/axis.js";
+
+const BAR_WIDTH = 20;
+
+/**
+ * Returns the human-readable axis name from the AXES registry,
+ * falling back to the raw axisId if not found.
+ */
+function axisName(axis: AxisMeasurement): string {
+  const descriptor = AXES.get(axis.axisId);
+  return descriptor !== undefined ? descriptor.name : axis.axisId;
+}
+
+/**
+ * Returns the axis description from the AXES registry,
+ * or an empty string if not found.
+ */
+function axisDescription(axis: AxisMeasurement): string {
+  const descriptor = AXES.get(axis.axisId);
+  return descriptor !== undefined ? descriptor.description : "";
+}
+
+/**
+ * Renders a visual bar for a bounded metric (where max is not null).
+ * Uses block characters to visualize the proportion of value within [min, max].
+ */
+function renderBar(value: number, min: number, max: number): string {
+  const range = max - min;
+  if (range <= 0) {
+    return "";
+  }
+  const clamped = Math.max(min, Math.min(max, value));
+  const ratio = (clamped - min) / range;
+  const filled = Math.round(ratio * BAR_WIDTH);
+  const empty = BAR_WIDTH - filled;
+  return "█".repeat(filled) + "░".repeat(empty);
+}
+
+/**
+ * Formats a single metric value with its unit for display.
+ */
+function formatMetricValue(value: number, unit: string): string {
+  return `${value} ${unit}`;
+}
+
+/**
+ * Formats a single metric line, optionally with a visual bar for bounded metrics.
+ */
+function formatMetricLine(metric: MetricValue, indent: string): string {
+  const formatted = formatMetricValue(metric.value, metric.descriptor.unit);
+  if (metric.descriptor.max !== null) {
+    const bar = renderBar(metric.value, metric.descriptor.min, metric.descriptor.max);
+    return `${indent}${metric.descriptor.name}: ${formatted}  ${bar}`;
+  }
+  return `${indent}${metric.descriptor.name}: ${formatted}`;
+}
+
+/**
+ * Formats a MeasurementReport as a detailed terminal output with
+ * visual indicators and per-file breakdowns.
+ *
+ * Output is deterministic for identical input (Principle #3).
+ */
+export function formatTerminalRich(report: MeasurementReport): string {
+  const lines: string[] = [];
+
+  lines.push(`CodePulse Report: ${report.targetPath}`);
+  lines.push(`Measured at: ${report.timestamp}`);
+  lines.push("");
+
+  if (report.axes.length === 0) {
+    lines.push("No axes measured.");
+    return lines.join("\n");
+  }
+
+  for (let axisIdx = 0; axisIdx < report.axes.length; axisIdx++) {
+    const axis = report.axes[axisIdx]!;
+    const name = axisName(axis);
+    const description = axisDescription(axis);
+
+    // Axis header with separator
+    lines.push("─".repeat(60));
+    lines.push(name);
+    if (description.length > 0) {
+      lines.push(`  ${description}`);
+    }
+    lines.push("");
+
+    // Summary metrics
+    if (axis.summary.length === 0) {
+      lines.push("  No metrics available.");
+    } else {
+      for (const metric of axis.summary) {
+        lines.push(formatMetricLine(metric, "  "));
+      }
+    }
+
+    // Per-file breakdown
+    if (axis.files.length > 0) {
+      lines.push("");
+      lines.push("  Files:");
+      for (const file of axis.files) {
+        lines.push(`    ${file.filePath}`);
+        for (const metric of file.metrics) {
+          lines.push(formatMetricLine(metric, "      "));
+        }
+      }
+    }
+
+    // Add blank line between axes (but not after the last one)
+    if (axisIdx < report.axes.length - 1) {
+      lines.push("");
+    }
+  }
+
+  return lines.join("\n");
+}
