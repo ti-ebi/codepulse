@@ -491,4 +491,108 @@ describe("formatTerminalRich", () => {
     const output = formatTerminalRich(report);
     expect(output).not.toContain("Warnings");
   });
+
+  it("color-codes values for bounded metrics", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "duplication",
+          summary: [
+            {
+              descriptor: {
+                id: "duplication_percent",
+                name: "Duplication",
+                unit: "percent",
+                min: 0,
+                max: 100,
+                interpretation: "Percentage of duplicated code",
+              },
+              value: 50,
+            },
+          ],
+          files: [],
+        },
+      ],
+    });
+
+    const output = formatTerminalRich(report);
+    // Bounded metrics should have ANSI color codes
+    expect(output).toMatch(/\x1b\[\d+m/);
+  });
+
+  it("does not color-code values for unbounded metrics", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "size",
+          summary: [
+            {
+              descriptor: {
+                id: "total_lines",
+                name: "Total Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Total number of lines",
+              },
+              value: 1500,
+            },
+          ],
+          files: [],
+        },
+      ],
+    });
+
+    const output = formatTerminalRich(report);
+    // Unbounded metric values should not have ANSI color codes in the value text
+    // (note: bar characters are separate from value text)
+    expect(output).not.toMatch(/\x1b\[\d+m.*1500/);
+  });
+
+  it("color-codes per-file metric values for bounded metrics", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "test-coverage",
+          summary: [
+            {
+              descriptor: {
+                id: "line_coverage",
+                name: "Line Coverage",
+                unit: "percent",
+                min: 0,
+                max: 100,
+                interpretation: "Line coverage percentage",
+              },
+              value: 80,
+            },
+          ],
+          files: [
+            {
+              filePath: "/project/src/main.ts",
+              metrics: [
+                {
+                  descriptor: {
+                    id: "line_coverage",
+                    name: "Line Coverage",
+                    unit: "percent",
+                    min: 0,
+                    max: 100,
+                    interpretation: "Line coverage for this file",
+                  },
+                  value: 65,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    const output = formatTerminalRich(report);
+    // Both summary and file-level bounded values should be colored
+    // Count ANSI reset sequences to confirm multiple colored values
+    const resetCount = (output.match(/\x1b\[0m/g) || []).length;
+    expect(resetCount).toBeGreaterThanOrEqual(2);
+  });
 });

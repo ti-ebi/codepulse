@@ -7,7 +7,7 @@
  */
 
 import type { MeasurementReport } from "../types/measurement.js";
-import { axisName, axisNameById } from "./axis-helpers.js";
+import { axisName, axisNameById, colorizeValue } from "./axis-helpers.js";
 
 /**
  * Formats a single metric value with its unit for display.
@@ -35,23 +35,26 @@ export function formatTerminalCompact(report: MeasurementReport): string {
     return lines.join("\n");
   }
 
-  // Calculate column widths for alignment
-  const rows: Array<{ axis: string; metric: string; value: string }> = [];
+  // Calculate column widths for alignment.
+  // Plain values are used for width calculation; colorized values for display.
+  const rows: Array<{ axis: string; metric: string; value: string; colorizedValue: string }> = [];
 
   for (const axis of report.axes) {
     const name = axisName(axis);
 
     if (axis.summary.length === 0) {
-      rows.push({ axis: name, metric: "-", value: "-" });
+      rows.push({ axis: name, metric: "-", value: "-", colorizedValue: "-" });
       continue;
     }
 
     for (let i = 0; i < axis.summary.length; i++) {
-      const metricValue = axis.summary[i]!;
+      const mv = axis.summary[i]!;
+      const plain = formatMetricValue(mv.value, mv.descriptor.unit);
       rows.push({
         axis: i === 0 ? name : "",
-        metric: metricValue.descriptor.name,
-        value: formatMetricValue(metricValue.value, metricValue.descriptor.unit),
+        metric: mv.descriptor.name,
+        value: plain,
+        colorizedValue: colorizeValue(plain, mv),
       });
     }
   }
@@ -75,12 +78,16 @@ export function formatTerminalCompact(report: MeasurementReport): string {
     "-".repeat(valueWidth),
   ].join("  "));
 
-  // Data rows
+  // Data rows — use plain value for padding, then replace with colorized version.
   for (const row of rows) {
+    const paddedValue = row.value.padEnd(valueWidth);
+    const displayValue = row.colorizedValue === row.value
+      ? paddedValue
+      : row.colorizedValue + " ".repeat(valueWidth - row.value.length);
     lines.push([
       row.axis.padEnd(axisWidth),
       row.metric.padEnd(metricWidth),
-      row.value.padEnd(valueWidth),
+      displayValue,
     ].join("  "));
   }
 

@@ -330,4 +330,60 @@ describe("formatTerminalCompact", () => {
     const output = formatTerminalCompact(report);
     expect(output).not.toContain("Warnings");
   });
+
+  it("color-codes values for bounded metrics", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "duplication",
+          summary: [
+            {
+              descriptor: {
+                id: "duplication_percent",
+                name: "Duplication",
+                unit: "percent",
+                min: 0,
+                max: 100,
+                interpretation: "Percentage of duplicated code",
+              },
+              value: 50,
+            },
+          ],
+          files: [],
+        },
+      ],
+    });
+
+    const output = formatTerminalCompact(report);
+    // Bounded metrics should have ANSI color codes
+    expect(output).toMatch(/\x1b\[\d+m/);
+  });
+
+  it("does not color-code values for unbounded metrics", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "size",
+          summary: [
+            {
+              descriptor: {
+                id: "total_lines",
+                name: "Total Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Total number of lines",
+              },
+              value: 1500,
+            },
+          ],
+          files: [],
+        },
+      ],
+    });
+
+    const output = formatTerminalCompact(report);
+    // Unbounded metrics should not have ANSI color codes
+    expect(output).not.toMatch(/\x1b\[\d+m/);
+  });
 });

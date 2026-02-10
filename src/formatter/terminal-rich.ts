@@ -7,7 +7,7 @@
  */
 
 import type { MeasurementReport, MetricValue } from "../types/measurement.js";
-import { axisName, axisNameById, axisDescription } from "./axis-helpers.js";
+import { axisName, axisNameById, axisDescription, colorizeValue } from "./axis-helpers.js";
 
 const BAR_WIDTH = 20;
 
@@ -36,14 +36,16 @@ function formatMetricValue(value: number, unit: string): string {
 
 /**
  * Formats a single metric line, optionally with a visual bar for bounded metrics.
+ * Bounded metrics are color-coded to indicate their position within the range.
  */
 function formatMetricLine(metric: MetricValue, indent: string): string {
   const formatted = formatMetricValue(metric.value, metric.descriptor.unit);
+  const colorized = colorizeValue(formatted, metric);
   if (metric.descriptor.max !== null) {
     const bar = renderBar(metric.value, metric.descriptor.min, metric.descriptor.max);
-    return `${indent}${metric.descriptor.name}: ${formatted}  ${bar}`;
+    return `${indent}${metric.descriptor.name}: ${colorized}  ${bar}`;
   }
-  return `${indent}${metric.descriptor.name}: ${formatted}`;
+  return `${indent}${metric.descriptor.name}: ${colorized}`;
 }
 
 /**

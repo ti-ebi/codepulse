@@ -47,8 +47,8 @@ Each axis is independent -- run any subset or all at once.
 
 | Format | Description |
 |---|---|
-| **Terminal (compact)** | Summary table for quick review |
-| **Terminal (rich)** | Detailed breakdown with visual indicators |
+| **Terminal (compact)** | Summary table with color-coded values for bounded metrics |
+| **Terminal (rich)** | Detailed breakdown with visual bars and color-coded values |
 | **JSON** | Machine-readable with axis metadata (name, description) and metric metadata (unit, range, interpretation guidance) |
 | **HTML** | Self-contained static dashboard, no server required |
 | **MCP Server** | Structured access for AI agents via Model Context Protocol (stdio) |

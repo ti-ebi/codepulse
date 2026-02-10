@@ -6,7 +6,7 @@
  */
 
 import type { AxisId } from "../types/axis.js";
-import type { AxisMeasurement } from "../types/measurement.js";
+import type { AxisMeasurement, MetricValue } from "../types/measurement.js";
 import { AXES } from "../types/axis.js";
 
 /**
@@ -33,4 +33,48 @@ export function axisName(axis: AxisMeasurement): string {
 export function axisDescription(axis: AxisMeasurement): string {
   const descriptor = AXES.get(axis.axisId);
   return descriptor !== undefined ? descriptor.description : "";
+}
+
+/**
+ * ANSI escape codes for magnitude-based color coding.
+ * Colors visualize scale position, not judgment (CLAUDE.md boundary).
+ */
+const ANSI_RESET = "\x1b[0m";
+const ANSI_CYAN = "\x1b[36m";
+const ANSI_YELLOW = "\x1b[33m";
+const ANSI_MAGENTA = "\x1b[35m";
+
+/**
+ * Wraps a formatted metric value string with ANSI color codes based on
+ * where the metric's value falls within its [min, max] range.
+ *
+ * - Lower third of range: cyan
+ * - Middle third of range: yellow
+ * - Upper third of range: magenta
+ *
+ * Returns the plain string unchanged for unbounded metrics (max is null)
+ * or zero-range metrics (min equals max).
+ */
+export function colorizeValue(formatted: string, metric: MetricValue): string {
+  const { min, max } = metric.descriptor;
+  if (max === null) {
+    return formatted;
+  }
+  const range = max - min;
+  if (range <= 0) {
+    return formatted;
+  }
+  const clamped = Math.max(min, Math.min(max, metric.value));
+  const ratio = (clamped - min) / range;
+
+  let color: string;
+  if (ratio < 1 / 3) {
+    color = ANSI_CYAN;
+  } else if (ratio < 2 / 3) {
+    color = ANSI_YELLOW;
+  } else {
+    color = ANSI_MAGENTA;
+  }
+
+  return `${color}${formatted}${ANSI_RESET}`;
 }

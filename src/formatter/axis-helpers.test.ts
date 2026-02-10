@@ -4,7 +4,8 @@
 
 import { describe, it, expect } from "vitest";
 import type { AxisMeasurement } from "../types/measurement.js";
-import { axisName, axisNameById, axisDescription } from "./axis-helpers.js";
+import type { MetricValue } from "../types/measurement.js";
+import { axisName, axisNameById, axisDescription, colorizeValue } from "./axis-helpers.js";
 
 function makeAxis(axisId: string): AxisMeasurement {
   return {
@@ -65,5 +66,86 @@ describe("axisDescription", () => {
 
   it("returns empty string for an unknown axis", () => {
     expect(axisDescription(makeAxis("unknown-axis"))).toBe("");
+  });
+});
+
+function makeMetric(value: number, min: number, max: number | null): MetricValue {
+  return {
+    descriptor: {
+      id: "test_metric",
+      name: "Test Metric",
+      unit: "percent",
+      min,
+      max,
+      interpretation: "Test metric for color tests",
+    },
+    value,
+  };
+}
+
+describe("colorizeValue", () => {
+  it("returns the plain string for unbounded metrics (max is null)", () => {
+    const metric = makeMetric(50, 0, null);
+    const result = colorizeValue("50 percent", metric);
+    expect(result).toBe("50 percent");
+  });
+
+  it("wraps value with ANSI color codes for bounded metrics", () => {
+    const metric = makeMetric(50, 0, 100);
+    const result = colorizeValue("50 percent", metric);
+    // Should contain ANSI escape sequences
+    expect(result).toMatch(/\x1b\[\d+m/);
+    // Should still contain the original text
+    expect(result).toContain("50 percent");
+    // Should end with reset code
+    expect(result).toContain("\x1b[0m");
+  });
+
+  it("uses low-range color for values in the lower third", () => {
+    const metricLow = makeMetric(10, 0, 100);
+    const metricHigh = makeMetric(90, 0, 100);
+    const resultLow = colorizeValue("10 percent", metricLow);
+    const resultHigh = colorizeValue("90 percent", metricHigh);
+    // Different positions in the range should produce different colors
+    expect(resultLow).not.toBe(resultHigh);
+  });
+
+  it("applies color to value at the minimum bound", () => {
+    const metric = makeMetric(0, 0, 100);
+    const result = colorizeValue("0 percent", metric);
+    expect(result).toMatch(/\x1b\[\d+m/);
+  });
+
+  it("applies color to value at the maximum bound", () => {
+    const metric = makeMetric(100, 0, 100);
+    const result = colorizeValue("100 percent", metric);
+    expect(result).toMatch(/\x1b\[\d+m/);
+  });
+
+  it("handles a zero-range metric (min equals max) without color", () => {
+    const metric = makeMetric(5, 5, 5);
+    const result = colorizeValue("5 percent", metric);
+    expect(result).toBe("5 percent");
+  });
+
+  it("clamps values below the minimum", () => {
+    const metric = makeMetric(-10, 0, 100);
+    const result = colorizeValue("-10 percent", metric);
+    // Should still apply color (clamped to min position)
+    expect(result).toMatch(/\x1b\[\d+m/);
+  });
+
+  it("clamps values above the maximum", () => {
+    const metric = makeMetric(150, 0, 100);
+    const result = colorizeValue("150 percent", metric);
+    // Should still apply color (clamped to max position)
+    expect(result).toMatch(/\x1b\[\d+m/);
+  });
+
+  it("produces deterministic output for identical input", () => {
+    const metric = makeMetric(42, 0, 100);
+    const result1 = colorizeValue("42 percent", metric);
+    const result2 = colorizeValue("42 percent", metric);
+    expect(result1).toBe(result2);
   });
 });
