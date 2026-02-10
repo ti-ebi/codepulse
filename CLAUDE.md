@@ -142,6 +142,18 @@ These are concrete prohibitions derived from the Design Principles. They must no
 
 ### Testing
 
+Development follows Test-Driven Development (TDD). Every functional change must go through this cycle:
+
+1. **Red** -- Write a failing test that describes the expected behavior before writing any implementation code
+2. **Green** -- Write the minimum implementation code to make the test pass
+3. **Refactor** -- Improve the implementation while keeping all tests green
+
+Rules:
+- No production code without a corresponding test written first
+- Each TDD cycle should be small -- one behavior per cycle
+- Commit at the Green or Refactor step, never at Red
+
+Test categories:
 - Unit tests: verify individual adapter parsing and normalization logic
 - Integration tests: verify end-to-end measurement on fixture codebases
 - Determinism tests: run the same measurement twice and assert identical output
