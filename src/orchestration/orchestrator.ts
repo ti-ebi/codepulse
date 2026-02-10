@@ -120,11 +120,17 @@ export async function measure(
     });
   }
 
+  const entries = [...resolved.entries()];
+  const results = await Promise.all(
+    entries.map(([axisId, adapter]) => adapter.measure(config.targetPath, axisId)),
+  );
+
   const axisMeasurements: AxisMeasurement[] = [];
   const axisErrors: AxisOrchestrationError[] = [];
 
-  for (const [axisId, adapter] of resolved) {
-    const result = await adapter.measure(config.targetPath, axisId);
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i]!;
+    const [axisId, adapter] = entries[i]!;
     if (result.ok) {
       axisMeasurements.push(result.value);
     } else {

@@ -341,4 +341,64 @@ describe("measure", () => {
 
     expect(result1).toEqual(result2);
   });
+
+  it("runs independent adapters concurrently", async () => {
+    const DELAY_MS = 50;
+    const executionLog: string[] = [];
+
+    function createDelayedAdapter(
+      id: string,
+      axis: AxisId,
+    ): ToolAdapter {
+      return {
+        id,
+        toolName: `delayed-${id}`,
+        supportedAxes: [axis],
+        async checkAvailability(): Promise<ToolAvailability> {
+          return { available: true, version: "1.0.0" };
+        },
+        async measure(
+          _targetPath: string,
+          axisId: AxisId,
+        ): Promise<Result<AxisMeasurement, AdapterError>> {
+          executionLog.push(`start:${id}`);
+          await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+          executionLog.push(`end:${id}`);
+          return { ok: true, value: { axisId, summary: [], files: [] } };
+        },
+      };
+    }
+
+    const registry = new AdapterRegistry();
+    registry.register(createDelayedAdapter("adapter-a", "complexity"));
+    registry.register(createDelayedAdapter("adapter-b", "duplication"));
+    registry.register(createDelayedAdapter("adapter-c", "size"));
+    const config = createConfig({ axes: ["complexity", "duplication", "size"] });
+
+    const start = Date.now();
+    const result = await measure(config, registry, { timestampFn: fixedTimestampFn });
+    const elapsed = Date.now() - start;
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.axes).toHaveLength(3);
+    }
+
+    // If sequential, elapsed ≥ 3 * DELAY_MS (150ms).
+    // If parallel, elapsed ≈ DELAY_MS (50ms).
+    // Use a generous threshold to avoid flaky timing in CI.
+    expect(elapsed).toBeLessThan(DELAY_MS * 2.5);
+
+    // All adapters should start before any finishes (concurrent execution).
+    const starts = executionLog.filter((e) => e.startsWith("start:"));
+    const ends = executionLog.filter((e) => e.startsWith("end:"));
+    expect(starts).toHaveLength(3);
+    expect(ends).toHaveLength(3);
+    // In parallel execution, all starts precede all ends.
+    const firstEndIndex = executionLog.findIndex((e) => e.startsWith("end:"));
+    const lastStartIndex = executionLog.lastIndexOf(
+      executionLog.filter((e) => e.startsWith("start:")).at(-1)!,
+    );
+    expect(lastStartIndex).toBeLessThan(firstEndIndex);
+  });
 });
