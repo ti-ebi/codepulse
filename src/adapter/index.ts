@@ -6,3 +6,4 @@ export {
 export { AdapterRegistry } from "./registry.js";
 export { createSccAdapter } from "./scc.js";
 export { createJscpdAdapter } from "./jscpd.js";
+export { createKnipAdapter } from "./knip.js";
