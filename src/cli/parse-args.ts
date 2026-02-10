@@ -124,7 +124,10 @@ export function parseArgs(argv: readonly string[]): ParseResult {
           },
         };
       }
-      axes.push(value as AxisId);
+      const axisId = value as AxisId;
+      if (!axes.includes(axisId)) {
+        axes.push(axisId);
+      }
       i += 2;
       continue;
     }

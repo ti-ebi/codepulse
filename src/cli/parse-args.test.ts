@@ -67,6 +67,14 @@ describe("parseArgs", () => {
       if (result.ok) return;
       expect(result.error.message).toContain("xml");
     });
+
+    it("returns an error when --format is last with no value", () => {
+      const result = parseArgs(["/project", "--format"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("--format requires a value");
+    });
   });
 
   describe("--axis flag", () => {
@@ -101,6 +109,26 @@ describe("parseArgs", () => {
       if (result.ok) return;
       expect(result.error.message).toContain("magic");
     });
+
+    it("deduplicates repeated axes", () => {
+      const result = parseArgs([
+        "--axis", "complexity",
+        "--axis", "complexity",
+        "--axis", "size",
+        "/project",
+      ]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.axes).toEqual(["complexity", "size"]);
+    });
+
+    it("returns an error when --axis is last with no value", () => {
+      const result = parseArgs(["/project", "--axis"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("--axis requires a value");
+    });
   });
 
   describe("--output flag", () => {
@@ -116,6 +144,14 @@ describe("parseArgs", () => {
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.value.outputPath).toBe("/tmp/report.json");
+    });
+
+    it("returns an error when --output is last with no value", () => {
+      const result = parseArgs(["/project", "--output"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("--output requires a value");
     });
   });
 
