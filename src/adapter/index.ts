@@ -5,3 +5,4 @@ export {
 } from "./adapter.js";
 export { AdapterRegistry } from "./registry.js";
 export { createSccAdapter } from "./scc.js";
+export { createJscpdAdapter } from "./jscpd.js";

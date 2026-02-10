@@ -12,11 +12,13 @@ import * as node_fs from "node:fs/promises";
 import * as node_process from "node:process";
 import { AdapterRegistry } from "../adapter/registry.js";
 import { createSccAdapter } from "../adapter/scc.js";
+import { createJscpdAdapter } from "../adapter/jscpd.js";
 import { run } from "./run.js";
 import type { CliDeps } from "./run.js";
 
 const registry = new AdapterRegistry();
 registry.register(createSccAdapter());
+registry.register(createJscpdAdapter());
 
 const deps: CliDeps = {
   stdout: (text: string) => node_process.stdout.write(text + "\n"),
