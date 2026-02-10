@@ -175,4 +175,28 @@ describe("run", () => {
     // stdout should still confirm file was written
     expect(deps.stdoutLines[0]).toContain("/tmp/report.json");
   });
+
+  it("starts MCP server when --mcp is passed", async () => {
+    let mcpStarted = false;
+    const deps = createTestDeps({
+      startMcpServer: async () => {
+        mcpStarted = true;
+      },
+    });
+
+    const exitCode = await run(["--mcp"], deps);
+
+    expect(exitCode).toBe(0);
+    expect(mcpStarted).toBe(true);
+  });
+
+  it("returns exit code 1 when --mcp is passed but server is unavailable", async () => {
+    const deps = createTestDeps();
+    // No startMcpServer provided
+
+    const exitCode = await run(["--mcp"], deps);
+
+    expect(exitCode).toBe(1);
+    expect(deps.stderrLines.length).toBeGreaterThan(0);
+  });
 });

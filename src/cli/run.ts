@@ -31,6 +31,7 @@ export interface CliDeps {
   readonly registry: AdapterRegistry;
   readonly timestampFn?: () => string;
   readonly writeFn?: (path: string, content: string) => Promise<void>;
+  readonly startMcpServer?: () => Promise<void>;
 }
 
 function selectFormatter(format: OutputFormat): Formatter {
@@ -60,6 +61,14 @@ export async function run(
     const { kind, message } = parseResult.error;
     if (kind === "help" || kind === "version") {
       deps.stdout(message);
+      return 0;
+    }
+    if (kind === "mcp") {
+      if (deps.startMcpServer === undefined) {
+        deps.stderr("MCP server is not available");
+        return 1;
+      }
+      await deps.startMcpServer();
       return 0;
     }
     // Parsing error.

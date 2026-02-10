@@ -15,6 +15,8 @@ import { createSccAdapter } from "../adapter/scc.js";
 import { createJscpdAdapter } from "../adapter/jscpd.js";
 import { createKnipAdapter } from "../adapter/knip.js";
 import { createMadgeAdapter } from "../adapter/madge.js";
+import { createMcpServer } from "../mcp/server.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { run } from "./run.js";
 import type { CliDeps } from "./run.js";
 
@@ -30,6 +32,11 @@ const deps: CliDeps = {
   registry,
   writeFn: async (path: string, content: string) => {
     await node_fs.writeFile(path, content, "utf-8");
+  },
+  startMcpServer: async () => {
+    const server = createMcpServer({ registry });
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
   },
 };
 

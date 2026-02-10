@@ -168,6 +168,22 @@ describe("parseArgs", () => {
     });
   });
 
+  describe("--mcp flag", () => {
+    it("returns an mcp result when --mcp is passed", () => {
+      const result = parseArgs(["--mcp"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("mcp");
+    });
+
+    it("returns mcp even with other arguments", () => {
+      const result = parseArgs(["--mcp", "/project"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("mcp");
+    });
+  });
+
   describe("unknown flags", () => {
     it("returns an error for unrecognized flags", () => {
       const result = parseArgs(["--unknown", "/project"]);

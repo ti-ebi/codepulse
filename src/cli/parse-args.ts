@@ -16,7 +16,7 @@ import { AXES } from "../types/axis.js";
  * Non-config results from parsing: help request, version request, or error.
  */
 export interface ParseError {
-  readonly kind: "error" | "help" | "version";
+  readonly kind: "error" | "help" | "version" | "mcp";
   readonly message: string;
 }
 
@@ -37,6 +37,7 @@ const KNOWN_FLAGS: ReadonlySet<string> = new Set([
   "--output",
   "--help",
   "--version",
+  "--mcp",
 ]);
 
 /**
@@ -65,6 +66,13 @@ export function parseArgs(argv: readonly string[]): ParseResult {
     return {
       ok: false,
       error: { kind: "version", message: "codepulse 0.1.0" },
+    };
+  }
+
+  if (argv.includes("--mcp")) {
+    return {
+      ok: false,
+      error: { kind: "mcp", message: "Starting MCP server" },
     };
   }
 
@@ -186,6 +194,7 @@ function helpText(): string {
     "  --format <format>   Output format (terminal-compact, terminal-rich, json, html)",
     "  --axis <axis>       Measurement axis to run (repeatable)",
     "  --output <path>     Write output to file instead of stdout",
+    "  --mcp               Start as MCP server (stdio transport)",
     "  --help              Show this help message",
     "  --version           Show version number",
     "",

@@ -31,6 +31,49 @@ CodePulse measures the internal quality of source code across multiple dimension
 - **HTML** -- self-contained static dashboard, no server required
 - **MCP Server** -- structured access for AI agents via Model Context Protocol (stdio)
 
+## Usage
+
+```
+codepulse [options] <target-path>
+```
+
+### Options
+
+| Flag | Description |
+|---|---|
+| `--format <format>` | Output format: `terminal-compact` (default), `terminal-rich`, `json`, `html` |
+| `--axis <axis>` | Measurement axis to run (repeatable). Omit to run all available axes |
+| `--output <path>` | Write report to file instead of stdout |
+| `--mcp` | Start as MCP server (stdio transport) for AI agent integration |
+| `--help` | Show help message |
+| `--version` | Show version number |
+
+### Examples
+
+```bash
+# Measure all available axes, compact output
+codepulse ./my-project
+
+# JSON report for complexity and size only
+codepulse --format json --axis complexity --axis size ./my-project
+
+# HTML dashboard written to file
+codepulse --format html --output report.html ./my-project
+
+# Start as MCP server for AI agent access
+codepulse --mcp
+```
+
+### MCP Server
+
+Run `codepulse --mcp` to start CodePulse as a Model Context Protocol server using stdio transport. This exposes a `measure` tool that AI agents can call to analyze codebases.
+
+The `measure` tool accepts:
+- `targetPath` (required) -- absolute path to the directory to measure
+- `axes` (optional) -- array of measurement axes to run
+
+Returns a structured JSON report with full metric metadata (units, ranges, interpretation guidance).
+
 ## Technical Stack
 
 - TypeScript (strict mode)
