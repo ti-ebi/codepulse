@@ -11,3 +11,4 @@ export { createMadgeAdapter } from "./madge.js";
 export { createC8Adapter } from "./c8.js";
 export { createEslintAdapter } from "./eslint.js";
 export { createSemgrepAdapter } from "./semgrep.js";
+export { createTypedocAdapter } from "./typedoc.js";

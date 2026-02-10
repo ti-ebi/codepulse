@@ -18,6 +18,7 @@ import { createMadgeAdapter } from "../adapter/madge.js";
 import { createC8Adapter } from "../adapter/c8.js";
 import { createEslintAdapter } from "../adapter/eslint.js";
 import { createSemgrepAdapter } from "../adapter/semgrep.js";
+import { createTypedocAdapter } from "../adapter/typedoc.js";
 import { createMcpServer } from "../mcp/server.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { run } from "./run.js";
@@ -31,6 +32,7 @@ registry.register(createMadgeAdapter());
 registry.register(createC8Adapter());
 registry.register(createEslintAdapter());
 registry.register(createSemgrepAdapter());
+registry.register(createTypedocAdapter());
 
 const deps: CliDeps = {
   stdout: (text: string) => node_process.stdout.write(text + "\n"),
