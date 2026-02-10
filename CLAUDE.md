@@ -250,3 +250,14 @@ Before committing any change, verify the following:
 - [ ] No default exports are introduced
 - [ ] TypeScript strict mode produces no errors
 - [ ] The change does not require knowledge of which external tool is used
+
+### README Maintenance
+
+README.md is the project's public face and must always reflect the current state of the project. Every change that affects user-facing behavior, configuration, supported measurement axes, output formats, or usage instructions must include a corresponding README update in the same commit.
+
+Rules:
+- Keep the README accurate -- it must describe what CodePulse actually does today, not what it will do in the future
+- Maintain a visually polished design -- the README should look as refined as a well-designed product landing page. Use shields/badges (build status, license, Node.js version, etc.), section dividers, icons or emoji for visual rhythm, and consistent formatting throughout
+- Use clear section hierarchy, concise language, and visual elements (code block examples, tables, diagrams where helpful) to make the README both scannable and informative
+- When adding or removing features, update all relevant README sections (installation, usage, examples, configuration)
+- If a change renders any part of the README outdated or inaccurate, updating the README is not optional -- it is part of the change
