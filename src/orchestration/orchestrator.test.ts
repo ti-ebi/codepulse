@@ -251,6 +251,59 @@ describe("measure", () => {
     }
   });
 
+  it("includes warning for unavailable axes", async () => {
+    const registry = new AdapterRegistry();
+    registry.register(createStubAdapter("scc", ["complexity"]));
+    const config = createConfig({ axes: ["complexity", "duplication"] });
+
+    const result = await measure(config, registry, { timestampFn: fixedTimestampFn });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.warnings).toHaveLength(1);
+      expect(result.value.warnings[0]?.axisId).toBe("duplication");
+      expect(result.value.warnings[0]?.message).toContain("No available adapter");
+    }
+  });
+
+  it("includes warning for adapter errors in partial results", async () => {
+    const registry = new AdapterRegistry();
+    registry.register(
+      createStubAdapter("scc", ["complexity"], {
+        measureResult: () => ({
+          ok: false,
+          error: { adapterId: "scc", message: "tool crashed" },
+        }),
+      }),
+    );
+    registry.register(createStubAdapter("jscpd", ["duplication"]));
+    const config = createConfig({ axes: ["complexity", "duplication"] });
+
+    const result = await measure(config, registry, { timestampFn: fixedTimestampFn });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.warnings).toHaveLength(1);
+      expect(result.value.warnings[0]?.axisId).toBe("complexity");
+      expect(result.value.warnings[0]?.message).toContain("scc");
+      expect(result.value.warnings[0]?.message).toContain("tool crashed");
+    }
+  });
+
+  it("returns empty warnings when all axes succeed", async () => {
+    const registry = new AdapterRegistry();
+    registry.register(createStubAdapter("scc", ["complexity"]));
+    registry.register(createStubAdapter("jscpd", ["duplication"]));
+    const config = createConfig({ axes: ["complexity", "duplication"] });
+
+    const result = await measure(config, registry, { timestampFn: fixedTimestampFn });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.warnings).toHaveLength(0);
+    }
+  });
+
   it("returns error when all resolved adapters fail during measurement", async () => {
     const registry = new AdapterRegistry();
     registry.register(

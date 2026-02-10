@@ -16,6 +16,7 @@ function makeReport(overrides?: Partial<MeasurementReport>): MeasurementReport {
     targetPath: "/project",
     timestamp: "2025-01-15T10:00:00.000Z",
     axes: [],
+    warnings: [],
     ...overrides,
   };
 }
@@ -588,5 +589,43 @@ describe("formatHtml", () => {
     const detailsMatch = output.match(/<details[^>]*>/);
     expect(detailsMatch).not.toBeNull();
     expect(detailsMatch![0]).not.toContain("open");
+  });
+
+  it("renders warnings section when axes could not be measured", () => {
+    const report = makeReport({
+      axes: [],
+      warnings: [
+        { axisId: "security", message: 'No available adapter for axis "security"' },
+        { axisId: "consistency", message: 'Adapter "eslint" failed: tool crashed' },
+      ],
+    });
+
+    const output = formatHtml(report);
+    expect(output).toContain("Warnings");
+    expect(output).toContain("security");
+    expect(output).toContain("consistency");
+  });
+
+  it("does not render warnings section when there are no warnings", () => {
+    const report = makeReport({
+      warnings: [],
+    });
+
+    const output = formatHtml(report);
+    // No actual warnings section should be rendered in the body
+    expect(output).not.toContain("Warnings</h2>");
+    expect(output).not.toContain('<section class="warnings-section">');
+  });
+
+  it("escapes HTML in warning messages", () => {
+    const report = makeReport({
+      warnings: [
+        { axisId: "security", message: '<script>alert("xss")</script>' },
+      ],
+    });
+
+    const output = formatHtml(report);
+    expect(output).not.toContain('<script>alert("xss")</script>');
+    expect(output).toContain("&lt;script&gt;");
   });
 });

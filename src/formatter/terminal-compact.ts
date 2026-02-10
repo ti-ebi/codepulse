@@ -84,5 +84,13 @@ export function formatTerminalCompact(report: MeasurementReport): string {
     ].join("  "));
   }
 
+  if (report.warnings.length > 0) {
+    lines.push("");
+    lines.push("Warnings:");
+    for (const warning of report.warnings) {
+      lines.push(`  ${warning.axisId}: ${warning.message}`);
+    }
+  }
+
   return lines.join("\n");
 }

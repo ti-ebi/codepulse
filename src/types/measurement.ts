@@ -58,6 +58,17 @@ export interface AxisMeasurement {
 }
 
 /**
+ * A warning about an axis that was requested but could not be measured.
+ * Included in the report so consumers know which axes are missing and why.
+ */
+export interface AxisWarning {
+  /** Which axis was requested. */
+  readonly axisId: AxisId;
+  /** Human-readable reason the axis could not be measured. */
+  readonly message: string;
+}
+
+/**
  * The top-level measurement report containing results from all requested axes.
  */
 export interface MeasurementReport {
@@ -67,4 +78,6 @@ export interface MeasurementReport {
   readonly timestamp: string;
   /** Results from each requested axis. */
   readonly axes: readonly AxisMeasurement[];
+  /** Axes that were requested but could not be measured. */
+  readonly warnings: readonly AxisWarning[];
 }

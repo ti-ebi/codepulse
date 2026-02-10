@@ -15,6 +15,7 @@ function makeReport(overrides?: Partial<MeasurementReport>): MeasurementReport {
     targetPath: "/project",
     timestamp: "2025-01-15T10:00:00.000Z",
     axes: [],
+    warnings: [],
     ...overrides,
   };
 }
@@ -269,5 +270,64 @@ describe("formatTerminalCompact", () => {
     const output = formatTerminalCompact(report);
     // Compact format shows summary only, not per-file paths
     expect(output).not.toContain("/project/src/main.ts");
+  });
+
+  it("displays warnings when axes could not be measured", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "size",
+          summary: [
+            {
+              descriptor: {
+                id: "total_lines",
+                name: "Total Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Total number of lines",
+              },
+              value: 100,
+            },
+          ],
+          files: [],
+        },
+      ],
+      warnings: [
+        { axisId: "security", message: 'No available adapter for axis "security"' },
+      ],
+    });
+
+    const output = formatTerminalCompact(report);
+    expect(output).toContain("Warnings");
+    expect(output).toContain("security");
+  });
+
+  it("does not display warnings section when there are no warnings", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "size",
+          summary: [
+            {
+              descriptor: {
+                id: "total_lines",
+                name: "Total Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Total number of lines",
+              },
+              value: 100,
+            },
+          ],
+          files: [],
+        },
+      ],
+      warnings: [],
+    });
+
+    const output = formatTerminalCompact(report);
+    expect(output).not.toContain("Warnings");
   });
 });

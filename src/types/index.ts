@@ -9,6 +9,7 @@ export {
   type MetricValue,
   type FileMeasurement,
   type AxisMeasurement,
+  type AxisWarning,
   type MeasurementReport,
 } from "./measurement.js";
 export {

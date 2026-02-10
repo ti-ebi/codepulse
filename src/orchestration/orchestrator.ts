@@ -10,7 +10,7 @@
 
 import type { AxisId } from "../types/axis.js";
 import type { MeasurementConfig } from "../types/config.js";
-import type { AxisMeasurement, MeasurementReport } from "../types/measurement.js";
+import type { AxisMeasurement, AxisWarning, MeasurementReport } from "../types/measurement.js";
 import type { Result } from "../types/result.js";
 import type { AdapterError } from "../adapter/adapter.js";
 import type { ToolAdapter } from "../adapter/adapter.js";
@@ -95,8 +95,8 @@ async function resolveAdapters(
  *
  * Behavior:
  * - Resolves which axes to measure and finds adapters for each.
- * - Axes with no available adapter are silently skipped (partial results
- *   are preferred over total failure).
+ * - Axes with no available adapter produce a warning in the report
+ *   (partial results are preferred over total failure).
  * - If *all* requested axes fail (no adapters or all adapters error),
  *   returns an OrchestrationError.
  * - Individual adapter errors are collected but do not abort the run.
@@ -150,12 +150,24 @@ export async function measure(
     });
   }
 
+  const warnings: AxisWarning[] = [];
+  for (const axisId of unavailable) {
+    warnings.push({ axisId, message: `No available adapter for axis "${axisId}"` });
+  }
+  for (const axisError of axisErrors) {
+    warnings.push({
+      axisId: axisError.axisId,
+      message: `Adapter "${axisError.adapterId}" failed: ${axisError.error.message}`,
+    });
+  }
+
   const timestampFn = options?.timestampFn ?? (() => new Date().toISOString());
 
   const report: MeasurementReport = {
     targetPath: config.targetPath,
     timestamp: timestampFn(),
     axes: axisMeasurements,
+    warnings,
   };
 
   return ok(report);

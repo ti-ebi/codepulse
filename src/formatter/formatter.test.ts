@@ -12,6 +12,7 @@ function makeReport(overrides?: Partial<MeasurementReport>): MeasurementReport {
     targetPath: "/project",
     timestamp: "2025-01-15T10:00:00.000Z",
     axes: [],
+    warnings: [],
     ...overrides,
   };
 }
@@ -32,6 +33,7 @@ describe("formatJson", () => {
       targetPath: "/project",
       timestamp: "2025-01-15T10:00:00.000Z",
       axes: [],
+      warnings: [],
     });
   });
 
@@ -212,5 +214,28 @@ describe("formatJson", () => {
     expect(output).toContain("\n");
     // Should use 2-space indentation
     expect(output).toContain('  "targetPath"');
+  });
+
+  it("includes warnings in JSON output", () => {
+    const report = makeReport({
+      warnings: [
+        { axisId: "security", message: 'No available adapter for axis "security"' },
+        { axisId: "consistency", message: 'Adapter "eslint" failed: tool crashed' },
+      ],
+    });
+
+    const parsed = JSON.parse(formatJson(report)) as Record<string, unknown>;
+    const warnings = parsed["warnings"] as Array<Record<string, unknown>>;
+    expect(warnings).toHaveLength(2);
+    expect(warnings[0]!["axisId"]).toBe("security");
+    expect(warnings[0]!["message"]).toContain("No available adapter");
+    expect(warnings[1]!["axisId"]).toBe("consistency");
+    expect(warnings[1]!["message"]).toContain("failed");
+  });
+
+  it("includes empty warnings array when no warnings exist", () => {
+    const report = makeReport();
+    const parsed = JSON.parse(formatJson(report)) as Record<string, unknown>;
+    expect(parsed["warnings"]).toEqual([]);
   });
 });

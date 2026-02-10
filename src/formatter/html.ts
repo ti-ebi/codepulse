@@ -215,6 +215,27 @@ const CSS = `
     .no-data {
       color: #8b949e;
       font-style: italic;
+    }
+    .warnings-section {
+      background: #161b22;
+      border: 1px solid #da3633;
+      border-radius: 6px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .warnings-section h2 {
+      color: #f85149;
+      font-size: 1.125rem;
+      margin-bottom: 0.75rem;
+    }
+    .warning-item {
+      color: #c9d1d9;
+      font-size: 0.875rem;
+      padding: 0.25rem 0;
+    }
+    .warning-axis {
+      color: #f0f6fc;
+      font-weight: 600;
     }`;
 
 /**
@@ -226,12 +247,22 @@ export function formatHtml(report: MeasurementReport): string {
   const targetPath = escapeHtml(report.targetPath);
   const timestamp = escapeHtml(report.timestamp);
 
-  let body: string;
-  if (report.axes.length === 0) {
-    body = `<p class="no-data">No axes measured.</p>`;
+  const bodyParts: string[] = [];
+
+  if (report.axes.length === 0 && report.warnings.length === 0) {
+    bodyParts.push(`<p class="no-data">No axes measured.</p>`);
   } else {
-    body = report.axes.map(renderAxis).join("\n");
+    bodyParts.push(...report.axes.map(renderAxis));
   }
+
+  if (report.warnings.length > 0) {
+    const warningItems = report.warnings
+      .map((w) => `<div class="warning-item"><span class="warning-axis">${escapeHtml(w.axisId)}</span>: ${escapeHtml(w.message)}</div>`)
+      .join("\n");
+    bodyParts.push(`<section class="warnings-section">\n<h2>Warnings</h2>\n${warningItems}\n</section>`);
+  }
+
+  const body = bodyParts.join("\n");
 
   return `<!DOCTYPE html>
 <html lang="en">

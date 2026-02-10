@@ -104,5 +104,15 @@ export function formatTerminalRich(report: MeasurementReport): string {
     }
   }
 
+  if (report.warnings.length > 0) {
+    lines.push("");
+    lines.push("─".repeat(60));
+    lines.push("Warnings");
+    lines.push("");
+    for (const warning of report.warnings) {
+      lines.push(`  ${warning.axisId}: ${warning.message}`);
+    }
+  }
+
   return lines.join("\n");
 }

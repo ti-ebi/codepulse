@@ -16,6 +16,7 @@ function makeReport(overrides?: Partial<MeasurementReport>): MeasurementReport {
     targetPath: "/project",
     timestamp: "2025-01-15T10:00:00.000Z",
     axes: [],
+    warnings: [],
     ...overrides,
   };
 }
@@ -447,5 +448,47 @@ describe("formatTerminalRich", () => {
     const output1 = formatTerminalRich(report);
     const output2 = formatTerminalRich(report);
     expect(output1).toBe(output2);
+  });
+
+  it("displays warnings when axes could not be measured", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "size",
+          summary: [
+            {
+              descriptor: {
+                id: "total_lines",
+                name: "Total Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Total number of lines",
+              },
+              value: 100,
+            },
+          ],
+          files: [],
+        },
+      ],
+      warnings: [
+        { axisId: "security", message: 'No available adapter for axis "security"' },
+        { axisId: "consistency", message: 'Adapter "eslint" failed: tool crashed' },
+      ],
+    });
+
+    const output = formatTerminalRich(report);
+    expect(output).toContain("Warnings");
+    expect(output).toContain("security");
+    expect(output).toContain("consistency");
+  });
+
+  it("does not display warnings section when there are no warnings", () => {
+    const report = makeReport({
+      warnings: [],
+    });
+
+    const output = formatTerminalRich(report);
+    expect(output).not.toContain("Warnings");
   });
 });
