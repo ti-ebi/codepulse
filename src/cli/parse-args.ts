@@ -77,6 +77,7 @@ export function parseArgs(argv: readonly string[]): ParseResult {
   }
 
   let format: OutputFormat = "terminal-compact";
+  let formatExplicit = false;
   const axes: AxisId[] = [];
   let outputPath: string | undefined;
   let targetPath: string | undefined;
@@ -103,6 +104,7 @@ export function parseArgs(argv: readonly string[]): ParseResult {
         };
       }
       format = value as OutputFormat;
+      formatExplicit = true;
       i += 2;
       continue;
     }
@@ -176,6 +178,14 @@ export function parseArgs(argv: readonly string[]): ParseResult {
     };
   }
 
+  // Infer output format from --output file extension when --format was not explicit.
+  if (!formatExplicit && outputPath !== undefined) {
+    const inferred = inferFormatFromExtension(outputPath);
+    if (inferred !== undefined) {
+      format = inferred;
+    }
+  }
+
   const config: MeasurementConfig = {
     targetPath,
     axes,
@@ -185,6 +195,25 @@ export function parseArgs(argv: readonly string[]): ParseResult {
   };
 
   return { ok: true, value: config };
+}
+
+const EXTENSION_FORMAT_MAP: ReadonlyMap<string, OutputFormat> = new Map([
+  [".json", "json"],
+  [".html", "html"],
+  [".htm", "html"],
+]);
+
+/**
+ * Infers an output format from a file path's extension.
+ * Returns undefined if the extension is not recognized.
+ */
+function inferFormatFromExtension(filePath: string): OutputFormat | undefined {
+  const dotIndex = filePath.lastIndexOf(".");
+  if (dotIndex === -1) {
+    return undefined;
+  }
+  const ext = filePath.slice(dotIndex).toLowerCase();
+  return EXTENSION_FORMAT_MAP.get(ext);
 }
 
 function helpText(): string {
@@ -197,6 +226,7 @@ function helpText(): string {
     "  --format <format>   Output format (terminal-compact, terminal-rich, json, html)",
     "  --axis <axis>       Measurement axis to run (repeatable)",
     "  --output <path>     Write output to file instead of stdout",
+    "                      (format is inferred from .json/.html extension if --format is omitted)",
     "  --mcp               Start as MCP server (stdio transport)",
     "  --help              Show this help message",
     "  --version           Show version number",

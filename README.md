@@ -67,7 +67,7 @@ codepulse [options] <target-path>
 |---|---|
 | `--format <format>` | Output format: `terminal-compact` (default), `terminal-rich`, `json`, `html` |
 | `--axis <axis>` | Measurement axis to run (repeatable). Omit to run all available axes |
-| `--output <path>` | Write report to file instead of stdout |
+| `--output <path>` | Write report to file instead of stdout. Format is inferred from `.json`/`.html` extension if `--format` is omitted |
 | `--mcp` | Start as MCP server (stdio transport) for AI agent integration |
 | `--help` | Show help message |
 | `--version` | Show version number |
@@ -85,8 +85,8 @@ codepulse ./my-project
 # JSON report for complexity and size only
 codepulse --format json --axis complexity --axis size ./my-project
 
-# HTML dashboard written to file
-codepulse --format html --output report.html ./my-project
+# HTML dashboard written to file (format inferred from .html extension)
+codepulse --output report.html ./my-project
 
 # Rich terminal output for security and dead code
 codepulse --format terminal-rich --axis security --axis dead-code ./src

@@ -153,6 +153,41 @@ describe("parseArgs", () => {
       expect(result.error.kind).toBe("error");
       expect(result.error.message).toContain("--output requires a value");
     });
+
+    it("infers json format from .json output extension", () => {
+      const result = parseArgs(["--output", "/tmp/report.json", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.outputFormat).toBe("json");
+    });
+
+    it("infers html format from .html output extension", () => {
+      const result = parseArgs(["--output", "/tmp/report.html", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.outputFormat).toBe("html");
+    });
+
+    it("keeps default format for unrecognized output extension", () => {
+      const result = parseArgs(["--output", "/tmp/report.txt", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.outputFormat).toBe("terminal-compact");
+    });
+
+    it("does not infer format when --format is explicitly provided", () => {
+      const result = parseArgs(["--format", "terminal-rich", "--output", "/tmp/report.json", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.outputFormat).toBe("terminal-rich");
+    });
+
+    it("infers html format from .htm output extension", () => {
+      const result = parseArgs(["--output", "/tmp/report.htm", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.outputFormat).toBe("html");
+    });
   });
 
   describe("--help flag", () => {
