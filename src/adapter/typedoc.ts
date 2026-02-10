@@ -6,7 +6,7 @@
  * a structured representation of documented symbols.
  *
  * This adapter supports one measurement axis:
- *   - "documentation" — presence and staleness of documentation artifacts
+ *   - "documentation" — documentation coverage of exported symbols
  *
  * The adapter follows the Three-Line pattern:
  *   1. Invoke typedoc --json stdout <target>

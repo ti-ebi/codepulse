@@ -85,7 +85,7 @@ export const AXES: ReadonlyMap<AxisId, AxisDescriptor> = new Map([
     {
       id: "test-coverage",
       name: "Test Coverage",
-      description: "Ratio of tested to untested code paths",
+      description: "Line, statement, function, and branch coverage",
     },
   ],
   [
@@ -94,7 +94,7 @@ export const AXES: ReadonlyMap<AxisId, AxisDescriptor> = new Map([
       id: "documentation",
       name: "Documentation",
       description:
-        "Presence and staleness of documentation artifacts",
+        "Documentation coverage of exported symbols",
     },
   ],
 ]);

@@ -45,12 +45,12 @@ CodePulse measures code along these independent axes. Each axis delegates analys
 | Dead Code | Unused exports, unreachable code, orphaned files | knip |
 | Size | Lines of code, file count, function length distribution | scc |
 | Dependency Health | Dependency graph depth, circular dependencies | madge |
-| Security | Known vulnerability patterns (static only) | TBD |
-| Consistency | Naming conventions, formatting uniformity | TBD |
-| Test Coverage | Ratio of tested to untested code paths | TBD |
-| Documentation | Presence and staleness of documentation artifacts | TBD |
+| Security | Known vulnerability patterns (static only) | Semgrep |
+| Consistency | Naming conventions, formatting uniformity | ESLint |
+| Test Coverage | Line, statement, function, and branch coverage | c8 |
+| Documentation | Documentation coverage of exported symbols | TypeDoc |
 
-Each axis produces a normalized numeric result. Axes are composable -- users can run any subset. "TBD" indicates that the external tool has not yet been selected; the adapter will be implemented when the tool is chosen.
+Each axis produces a normalized numeric result. Axes are composable -- users can run any subset.
 
 ### Output Formats
 
