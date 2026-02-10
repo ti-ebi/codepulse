@@ -94,7 +94,13 @@ export async function run(
   const output = formatter(report);
 
   if (config.outputPath !== undefined && deps.writeFn !== undefined) {
-    await deps.writeFn(config.outputPath, output);
+    try {
+      await deps.writeFn(config.outputPath, output);
+    } catch (cause: unknown) {
+      const message = cause instanceof Error ? cause.message : String(cause);
+      deps.stderr(`Failed to write report: ${message}`);
+      return 1;
+    }
     deps.stdout(`Report written to ${config.outputPath}`);
   } else {
     deps.stdout(output);

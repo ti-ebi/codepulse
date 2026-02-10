@@ -176,6 +176,24 @@ describe("run", () => {
     expect(deps.stdoutLines[0]).toContain("/tmp/report.json");
   });
 
+  it("returns exit code 1 and reports error when writeFn throws", async () => {
+    const deps = createTestDeps({
+      writeFn: async () => {
+        throw new Error("EACCES: permission denied");
+      },
+    });
+    deps.registry.register(createMockAdapter("scc", ["size"], sizeMeasurement));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "--output", "/readonly/report.json", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(1);
+    expect(deps.stderrLines.length).toBeGreaterThan(0);
+    expect(deps.stderrLines[0]).toContain("permission denied");
+  });
+
   it("starts MCP server when --mcp is passed", async () => {
     let mcpStarted = false;
     const deps = createTestDeps({
