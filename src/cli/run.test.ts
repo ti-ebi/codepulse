@@ -217,4 +217,66 @@ describe("run", () => {
     expect(exitCode).toBe(1);
     expect(deps.stderrLines.length).toBeGreaterThan(0);
   });
+
+  it("returns exit code 1 when target path does not exist", async () => {
+    const deps = createTestDeps({
+      statFn: async () => { throw Object.assign(new Error("ENOENT"), { code: "ENOENT" }); },
+    });
+    deps.registry.register(createMockAdapter("scc", ["size"], sizeMeasurement));
+
+    const exitCode = await run(
+      ["--axis", "size", "/nonexistent/path"],
+      deps,
+    );
+
+    expect(exitCode).toBe(1);
+    expect(deps.stderrLines.length).toBeGreaterThan(0);
+    expect(deps.stderrLines[0]).toContain("does not exist");
+  });
+
+  it("returns exit code 1 when target path is a file, not a directory", async () => {
+    const deps = createTestDeps({
+      statFn: async () => ({ isDirectory: false }),
+    });
+    deps.registry.register(createMockAdapter("scc", ["size"], sizeMeasurement));
+
+    const exitCode = await run(
+      ["--axis", "size", "/some/file.ts"],
+      deps,
+    );
+
+    expect(exitCode).toBe(1);
+    expect(deps.stderrLines.length).toBeGreaterThan(0);
+    expect(deps.stderrLines[0]).toContain("not a directory");
+  });
+
+  it("proceeds normally when target path is a valid directory", async () => {
+    const deps = createTestDeps({
+      statFn: async () => ({ isDirectory: true }),
+    });
+    deps.registry.register(createMockAdapter("scc", ["size"], sizeMeasurement));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "/valid/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    expect(deps.stdoutLines.length).toBe(1);
+    const output = JSON.parse(deps.stdoutLines[0]!);
+    expect(output.targetPath).toBe("/valid/project");
+  });
+
+  it("skips target path validation when statFn is not provided", async () => {
+    const deps = createTestDeps();
+    // No statFn — validation is skipped, orchestration proceeds
+    deps.registry.register(createMockAdapter("scc", ["size"], sizeMeasurement));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "/any/path"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+  });
 });

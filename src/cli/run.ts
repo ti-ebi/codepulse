@@ -22,6 +22,13 @@ import { formatHtml } from "../formatter/html.js";
 import { parseArgs } from "./parse-args.js";
 
 /**
+ * Result of checking target path status.
+ */
+export interface StatResult {
+  readonly isDirectory: boolean;
+}
+
+/**
  * Injectable dependencies for testability.
  * Production code provides real I/O; tests provide mocks.
  */
@@ -32,6 +39,7 @@ export interface CliDeps {
   readonly timestampFn?: () => string;
   readonly writeFn?: (path: string, content: string) => Promise<void>;
   readonly startMcpServer?: () => Promise<void>;
+  readonly statFn?: (path: string) => Promise<StatResult>;
 }
 
 function selectFormatter(format: OutputFormat): Formatter {
@@ -77,6 +85,20 @@ export async function run(
   }
 
   const config = parseResult.value;
+
+  // Validate target path before running adapters.
+  if (deps.statFn !== undefined) {
+    try {
+      const stat = await deps.statFn(config.targetPath);
+      if (!stat.isDirectory) {
+        deps.stderr(`Target path "${config.targetPath}" is not a directory`);
+        return 1;
+      }
+    } catch {
+      deps.stderr(`Target path "${config.targetPath}" does not exist`);
+      return 1;
+    }
+  }
 
   const options = deps.timestampFn !== undefined
     ? { timestampFn: deps.timestampFn }

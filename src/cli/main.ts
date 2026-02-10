@@ -41,6 +41,10 @@ const deps: CliDeps = {
   writeFn: async (path: string, content: string) => {
     await node_fs.writeFile(path, content, "utf-8");
   },
+  statFn: async (path: string) => {
+    const stat = await node_fs.stat(path);
+    return { isDirectory: stat.isDirectory() };
+  },
   startMcpServer: async () => {
     const server = createMcpServer({ registry });
     const transport = new StdioServerTransport();
