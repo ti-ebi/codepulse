@@ -21,7 +21,7 @@ CodePulse measures the internal quality of source code across multiple dimension
 | Dead Code | Unused exports, unreachable code, orphaned files | [knip](https://github.com/webpro-nl/knip) |
 | Size | Lines of code, file count, function length distribution | [scc](https://github.com/boyter/scc) |
 | Dependency Health | Dependency graph depth, circular dependencies | [madge](https://github.com/pahen/madge) |
-| Test Coverage | Ratio of tested to untested code paths | TBD |
+| Test Coverage | Line, statement, function, and branch coverage | [c8](https://github.com/bcoe/c8) |
 
 ## Output Formats
 
