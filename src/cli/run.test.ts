@@ -676,6 +676,103 @@ describe("run", () => {
     expect(output.axes[0].files[2].filePath).toBe("/project/c.ts");
   });
 
+  it("emits stderr warning when --sort metric matches no metrics in any axis", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [
+        {
+          descriptor: {
+            id: "total-lines",
+            name: "Total Lines",
+            unit: "lines",
+            min: 0,
+            max: null,
+            interpretation: "Total number of lines across all files",
+          },
+          value: 500,
+        },
+      ],
+      files: [
+        {
+          filePath: "/project/a.ts",
+          metrics: [
+            {
+              descriptor: {
+                id: "code-lines",
+                name: "Code Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Lines of code in the file",
+              },
+              value: 100,
+            },
+          ],
+        },
+      ],
+    };
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("scc", ["size"], measurementWithFiles));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "--sort", "nonexistent-metric", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    expect(deps.stderrLines.length).toBe(1);
+    expect(deps.stderrLines[0]).toContain("nonexistent-metric");
+    expect(deps.stderrLines[0]).toContain("code-lines");
+  });
+
+  it("does not emit --sort warning when the metric matches file metrics", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        {
+          filePath: "/project/a.ts",
+          metrics: [
+            {
+              descriptor: {
+                id: "code-lines",
+                name: "Code Lines",
+                unit: "lines",
+                min: 0,
+                max: null,
+                interpretation: "Lines of code in the file",
+              },
+              value: 100,
+            },
+          ],
+        },
+      ],
+    };
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("scc", ["size"], measurementWithFiles));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "--sort", "code-lines", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    expect(deps.stderrLines.length).toBe(0);
+  });
+
+  it("does not emit --sort warning when no axes have file-level results", async () => {
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("scc", ["size"], sizeMeasurement));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "--sort", "nonexistent-metric", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    expect(deps.stderrLines.length).toBe(0);
+  });
+
   it("suppresses colors when both --no-color and noColorEnv are set", async () => {
     const boundedMeasurement: AxisMeasurement = {
       axisId: "duplication",

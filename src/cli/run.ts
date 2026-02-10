@@ -99,6 +99,36 @@ function limitFiles(report: MeasurementReport, n: number): MeasurementReport {
 }
 
 /**
+ * Emits a stderr warning when the --sort metric ID doesn't match any
+ * metric found in the report's file-level results.
+ * Skips the warning if no axes have file-level results (nothing to sort).
+ */
+function warnUnknownSortMetric(
+  report: MeasurementReport,
+  sortMetric: string,
+  stderr: (text: string) => void,
+): void {
+  const allFileMetricIds = new Set<string>();
+  for (const axis of report.axes) {
+    for (const file of axis.files) {
+      for (const metric of file.metrics) {
+        allFileMetricIds.add(metric.descriptor.id);
+      }
+    }
+  }
+
+  // If no axes have file-level metrics, there's nothing to sort — skip warning.
+  if (allFileMetricIds.size === 0) {
+    return;
+  }
+
+  if (!allFileMetricIds.has(sortMetric)) {
+    const available = [...allFileMetricIds].sort().join(", ");
+    stderr(`Warning: --sort metric "${sortMetric}" not found in file-level results. Available metrics: ${available}`);
+  }
+}
+
+/**
  * Run the CLI with the given argument array and dependencies.
  * Returns a process exit code (0 = success, 1 = error).
  */
@@ -158,6 +188,12 @@ export async function run(
   const sorted: MeasurementReport = config.sortMetric !== undefined
     ? sortFiles(rawReport, config.sortMetric)
     : rawReport;
+
+  // Warn when --sort specifies a metric that doesn't exist in any file-level results.
+  if (config.sortMetric !== undefined) {
+    warnUnknownSortMetric(rawReport, config.sortMetric, deps.stderr);
+  }
+
   const report: MeasurementReport = config.topN !== undefined
     ? limitFiles(sorted, config.topN)
     : sorted;
