@@ -16,6 +16,7 @@ import { createJscpdAdapter } from "../adapter/jscpd.js";
 import { createKnipAdapter } from "../adapter/knip.js";
 import { createMadgeAdapter } from "../adapter/madge.js";
 import { createC8Adapter } from "../adapter/c8.js";
+import { createEslintAdapter } from "../adapter/eslint.js";
 import { createMcpServer } from "../mcp/server.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { run } from "./run.js";
@@ -27,6 +28,7 @@ registry.register(createJscpdAdapter());
 registry.register(createKnipAdapter());
 registry.register(createMadgeAdapter());
 registry.register(createC8Adapter());
+registry.register(createEslintAdapter());
 
 const deps: CliDeps = {
   stdout: (text: string) => node_process.stdout.write(text + "\n"),
