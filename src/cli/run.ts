@@ -13,7 +13,7 @@
 import type { AdapterRegistry } from "../adapter/registry.js";
 import type { OutputFormat } from "../types/config.js";
 import type { MeasurementReport } from "../types/measurement.js";
-import type { Formatter } from "../formatter/formatter.js";
+import type { Formatter, FormatterOptions } from "../formatter/formatter.js";
 import { measure } from "../orchestration/orchestrator.js";
 import { formatJson } from "../formatter/json.js";
 import { formatTerminalCompact } from "../formatter/terminal-compact.js";
@@ -113,7 +113,8 @@ export async function run(
 
   const report: MeasurementReport = measureResult.value;
   const formatter = selectFormatter(config.outputFormat);
-  const output = formatter(report);
+  const formatterOptions: FormatterOptions = { noColor: config.noColor };
+  const output = formatter(report, formatterOptions);
 
   if (config.outputPath !== undefined && deps.writeFn !== undefined) {
     try {

@@ -37,4 +37,6 @@ export interface MeasurementConfig {
   readonly outputPath?: string | undefined;
   /** User-configured thresholds for color coding. */
   readonly thresholds: readonly MetricThreshold[];
+  /** Disable ANSI color codes in terminal output. */
+  readonly noColor: boolean;
 }

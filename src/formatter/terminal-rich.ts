@@ -7,6 +7,7 @@
  */
 
 import type { MeasurementReport, MetricValue } from "../types/measurement.js";
+import type { FormatterOptions } from "./formatter.js";
 import { axisName, axisNameById, axisDescription, colorizeValue } from "./axis-helpers.js";
 
 const BAR_WIDTH = 20;
@@ -38,9 +39,9 @@ function formatMetricValue(value: number, unit: string): string {
  * Formats a single metric line, optionally with a visual bar for bounded metrics.
  * Bounded metrics are color-coded to indicate their position within the range.
  */
-function formatMetricLine(metric: MetricValue, indent: string): string {
+function formatMetricLine(metric: MetricValue, indent: string, noColor = false): string {
   const formatted = formatMetricValue(metric.value, metric.descriptor.unit);
-  const colorized = colorizeValue(formatted, metric);
+  const colorized = colorizeValue(formatted, metric, noColor);
   if (metric.descriptor.max !== null) {
     const bar = renderBar(metric.value, metric.descriptor.min, metric.descriptor.max);
     return `${indent}${metric.descriptor.name}: ${colorized}  ${bar}`;
@@ -54,7 +55,8 @@ function formatMetricLine(metric: MetricValue, indent: string): string {
  *
  * Output is deterministic for identical input (Principle #3).
  */
-export function formatTerminalRich(report: MeasurementReport): string {
+export function formatTerminalRich(report: MeasurementReport, options?: FormatterOptions): string {
+  const noColor = options?.noColor ?? false;
   const lines: string[] = [];
 
   lines.push(`CodePulse Report: ${report.targetPath}`);
@@ -84,7 +86,7 @@ export function formatTerminalRich(report: MeasurementReport): string {
       lines.push("  No metrics available.");
     } else {
       for (const metric of axis.summary) {
-        lines.push(formatMetricLine(metric, "  "));
+        lines.push(formatMetricLine(metric, "  ", noColor));
       }
     }
 
@@ -95,7 +97,7 @@ export function formatTerminalRich(report: MeasurementReport): string {
       for (const file of axis.files) {
         lines.push(`    ${file.filePath}`);
         for (const metric of file.metrics) {
-          lines.push(formatMetricLine(metric, "      "));
+          lines.push(formatMetricLine(metric, "      ", noColor));
         }
       }
     }

@@ -39,6 +39,7 @@ const KNOWN_FLAGS: ReadonlySet<string> = new Set([
   "--version",
   "--mcp",
   "--list-axes",
+  "--no-color",
 ]);
 
 /**
@@ -89,6 +90,7 @@ export function parseArgs(argv: readonly string[]): ParseResult {
   const axes: AxisId[] = [];
   let outputPath: string | undefined;
   let targetPath: string | undefined;
+  let noColor = false;
 
   let i = 0;
   while (i < argv.length) {
@@ -155,6 +157,12 @@ export function parseArgs(argv: readonly string[]): ParseResult {
       continue;
     }
 
+    if (arg === "--no-color") {
+      noColor = true;
+      i += 1;
+      continue;
+    }
+
     if (arg.startsWith("--")) {
       if (!KNOWN_FLAGS.has(arg)) {
         return {
@@ -200,6 +208,7 @@ export function parseArgs(argv: readonly string[]): ParseResult {
     outputFormat: format,
     outputPath,
     thresholds: [],
+    noColor,
   };
 
   return { ok: true, value: config };
@@ -245,6 +254,7 @@ function helpText(): string {
     "  --axis <axis>       Measurement axis to run (repeatable)",
     "  --output <path>     Write output to file instead of stdout",
     "                      (format is inferred from .json/.html extension if --format is omitted)",
+    "  --no-color          Disable ANSI color codes in terminal output",
     "  --mcp               Start as MCP server (stdio transport)",
     "  --list-axes         List available measurement axes",
     "  --help              Show this help message",

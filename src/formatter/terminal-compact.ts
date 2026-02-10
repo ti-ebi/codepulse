@@ -7,6 +7,7 @@
  */
 
 import type { MeasurementReport } from "../types/measurement.js";
+import type { FormatterOptions } from "./formatter.js";
 import { axisName, axisNameById, colorizeValue } from "./axis-helpers.js";
 
 /**
@@ -23,7 +24,8 @@ function formatMetricValue(value: number, unit: string): string {
  * Only summary-level metrics are shown; per-file details are omitted
  * to keep the output compact.
  */
-export function formatTerminalCompact(report: MeasurementReport): string {
+export function formatTerminalCompact(report: MeasurementReport, options?: FormatterOptions): string {
+  const noColor = options?.noColor ?? false;
   const lines: string[] = [];
 
   lines.push(`CodePulse Report: ${report.targetPath}`);
@@ -54,7 +56,7 @@ export function formatTerminalCompact(report: MeasurementReport): string {
         axis: i === 0 ? name : "",
         metric: mv.descriptor.name,
         value: plain,
-        colorizedValue: colorizeValue(plain, mv),
+        colorizedValue: colorizeValue(plain, mv, noColor),
       });
     }
   }

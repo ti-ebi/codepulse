@@ -148,4 +148,24 @@ describe("colorizeValue", () => {
     const result2 = colorizeValue("42 percent", metric);
     expect(result1).toBe(result2);
   });
+
+  it("returns plain string when noColor is true for bounded metrics", () => {
+    const metric = makeMetric(50, 0, 100);
+    const result = colorizeValue("50 percent", metric, true);
+    expect(result).toBe("50 percent");
+    expect(result).not.toMatch(/\x1b\[\d+m/);
+  });
+
+  it("returns colored string when noColor is false for bounded metrics", () => {
+    const metric = makeMetric(50, 0, 100);
+    const result = colorizeValue("50 percent", metric, false);
+    expect(result).toMatch(/\x1b\[\d+m/);
+  });
+
+  it("defaults to colored output when noColor is not provided", () => {
+    const metric = makeMetric(50, 0, 100);
+    const withDefault = colorizeValue("50 percent", metric);
+    const withFalse = colorizeValue("50 percent", metric, false);
+    expect(withDefault).toBe(withFalse);
+  });
 });

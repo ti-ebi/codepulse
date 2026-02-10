@@ -290,4 +290,36 @@ describe("run", () => {
     expect(deps.stdoutLines[0]).toContain("complexity");
     expect(deps.stdoutLines[0]).toContain("size");
   });
+
+  it("suppresses ANSI color codes when --no-color is passed", async () => {
+    const boundedMeasurement: AxisMeasurement = {
+      axisId: "duplication",
+      summary: [
+        {
+          descriptor: {
+            id: "duplication_percent",
+            name: "Duplication",
+            unit: "percent",
+            min: 0,
+            max: 100,
+            interpretation: "Percentage of code that is duplicated",
+          },
+          value: 50,
+        },
+      ],
+      files: [],
+    };
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("jscpd", ["duplication"], boundedMeasurement));
+
+    const exitCode = await run(
+      ["--axis", "duplication", "--no-color", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = deps.stdoutLines[0]!;
+    expect(output).not.toMatch(/\x1b\[\d+m/);
+    expect(output).toContain("50");
+  });
 });

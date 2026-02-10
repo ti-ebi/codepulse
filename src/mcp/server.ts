@@ -61,6 +61,7 @@ export async function handleMeasureCall(
     axes: axisIds,
     outputFormat: "json",
     thresholds: [],
+    noColor: false,
   };
 
   const options = deps.timestampFn !== undefined

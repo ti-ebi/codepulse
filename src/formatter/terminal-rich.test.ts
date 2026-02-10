@@ -520,6 +520,34 @@ describe("formatTerminalRich", () => {
     expect(output).toMatch(/\x1b\[\d+m/);
   });
 
+  it("omits ANSI color codes when noColor is true", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "duplication",
+          summary: [
+            {
+              descriptor: {
+                id: "duplication_percent",
+                name: "Duplication",
+                unit: "percent",
+                min: 0,
+                max: 100,
+                interpretation: "Percentage of duplicated code",
+              },
+              value: 50,
+            },
+          ],
+          files: [],
+        },
+      ],
+    });
+
+    const output = formatTerminalRich(report, { noColor: true });
+    expect(output).not.toMatch(/\x1b\[\d+m/);
+    expect(output).toContain("50");
+  });
+
   it("does not color-code values for unbounded metrics", () => {
     const report = makeReport({
       axes: [

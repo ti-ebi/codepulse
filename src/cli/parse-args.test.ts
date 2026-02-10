@@ -280,6 +280,37 @@ describe("parseArgs", () => {
     });
   });
 
+  describe("--no-color flag", () => {
+    it("defaults noColor to false when not specified", () => {
+      const result = parseArgs(["/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.noColor).toBe(false);
+    });
+
+    it("sets noColor to true when --no-color is passed", () => {
+      const result = parseArgs(["--no-color", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.noColor).toBe(true);
+    });
+
+    it("sets noColor to true regardless of flag position", () => {
+      const result = parseArgs(["/project", "--no-color"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.noColor).toBe(true);
+    });
+
+    it("combines with other flags", () => {
+      const result = parseArgs(["--format", "json", "--no-color", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.noColor).toBe(true);
+      expect(result.value.outputFormat).toBe("json");
+    });
+  });
+
   describe("unknown flags", () => {
     it("returns an error for unrecognized flags", () => {
       const result = parseArgs(["--unknown", "/project"]);

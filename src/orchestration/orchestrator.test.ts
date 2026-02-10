@@ -16,6 +16,7 @@ function createConfig(overrides: Partial<MeasurementConfig> = {}): MeasurementCo
     axes: [],
     outputFormat: "json",
     thresholds: [],
+    noColor: false,
     ...overrides,
   };
 }

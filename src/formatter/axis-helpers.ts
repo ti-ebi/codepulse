@@ -55,7 +55,10 @@ const ANSI_MAGENTA = "\x1b[35m";
  * Returns the plain string unchanged for unbounded metrics (max is null)
  * or zero-range metrics (min equals max).
  */
-export function colorizeValue(formatted: string, metric: MetricValue): string {
+export function colorizeValue(formatted: string, metric: MetricValue, noColor = false): string {
+  if (noColor) {
+    return formatted;
+  }
   const { min, max } = metric.descriptor;
   if (max === null) {
     return formatted;
