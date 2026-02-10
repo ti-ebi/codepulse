@@ -146,3 +146,95 @@ These are concrete prohibitions derived from the Design Principles. They must no
 - Integration tests: verify end-to-end measurement on fixture codebases
 - Determinism tests: run the same measurement twice and assert identical output
 - All tests must pass offline with no network access
+
+## AI Agent Team Workflow
+
+CodePulse development uses a three-role team structure that optimizes for quality of judgment, not speed of implementation. The team exists to ensure that every change is worth building, built correctly, and coherent with the whole. Work proceeds through three checkpoints, each owned by a different role, where rejection is cheaper than correction.
+
+### Roles
+
+| Role | Responsibility | Core Question |
+|---|---|---|
+| Critic | Value judgment -- decides whether a proposed change is worth building by evaluating it against all three target user perspectives (developers, AI agents, CI/CD pipelines) | "Is this worth building?" |
+| Builder | Design and implementation -- produces the technical design, writes the code, writes the tests, and ensures CLAUDE.md compliance during construction | "Is this built right?" |
+| Integrator | Coherence verification -- ensures the change fits the unified experience across all output formats and maintains consistency with existing behavior | "Does this fit the whole?" |
+
+Testing is the Builder's responsibility. CLAUDE.md compliance is distributed across all three roles, not deferred to a post-hoc review.
+
+### Checkpoints
+
+Every change passes through three sequential checkpoints. A change that fails any checkpoint is rejected or revised before proceeding to the next.
+
+**Checkpoint 1: Before Design (Critic-led)**
+
+The Critic evaluates whether the proposed change delivers value. This is a GO/NO-GO decision. Questions to answer:
+
+- Does at least one target user group benefit from this change?
+- Does it conflict with any Design Principle or Boundary?
+- Can the value be achieved by configuring existing functionality instead?
+
+If the answer to the third question is yes, the change is rejected. Early rejection prevents wasted implementation effort.
+
+**Checkpoint 2: Before Implementation (Builder-led)**
+
+The Builder presents a technical design for approval. Questions to answer:
+
+- Does the design follow the Architecture Layers (see below)?
+- Does it pass all three Scope Tests (see below)?
+- Are adapter boundaries respected -- no custom analysis engines?
+
+**Checkpoint 3: Before Merge (Integrator-led)**
+
+The Integrator verifies end-to-end coherence. Questions to answer:
+
+- Do all output formats (terminal compact, terminal rich, JSON, HTML, MCP) produce consistent results?
+- Is the user experience identical regardless of target language?
+- Does the Boundary Review (see below) pass with no violations?
+
+### Architecture Layers
+
+All CodePulse code belongs to exactly one layer. Dependencies flow downward only.
+
+| Layer | Purpose | May Depend On |
+|---|---|---|
+| Types | Shared interfaces, result types, configuration schema | Nothing |
+| Adapter | Translates external tool I/O to CodePulse types | Types |
+| Orchestration | Coordinates adapter invocation and result aggregation | Types, Adapter |
+| Formatter | Transforms unified results into output formats | Types |
+| CLI | Parses arguments, wires orchestration to formatters | All above |
+
+Test: If a module in a lower layer imports from a higher layer, the design is wrong.
+
+### Scope Tests
+
+Apply these three tests to every proposed change. If any test fails, the change exceeds CodePulse's scope.
+
+**Orchestrator Test.** Does the change delegate analysis to an external tool, or does it implement analysis logic? CodePulse must delegate. If the change introduces pattern matching, AST traversal, or heuristic detection, it fails this test.
+
+**Three-Line Test.** Can the change's adapter logic be summarized as: (1) invoke the external tool, (2) parse its output, (3) map to CodePulse's schema? If the adapter requires more conceptual steps, it is doing too much.
+
+**Delete Test.** If this code were deleted, would CodePulse still function correctly for all other measurement axes? Each axis must be independent. If deleting one axis breaks another, the coupling must be removed.
+
+### Boundary Review
+
+Before merging any change, verify these seven checks derived from the Design Principles:
+
+1. No files in the target codebase are written, modified, or deleted (Principle #1)
+2. No data is transmitted outside the local machine (Principle #2)
+3. Output is deterministic for identical input (Principle #3)
+4. No custom parser, AST analyzer, or pattern-matching engine is introduced (Principle #4)
+5. No language-specific CLI flags or subcommands are added (Principle #5)
+6. All output uses CodePulse's own schema, not raw tool output (Principle #6)
+7. JSON output includes metric metadata and is machine-parseable without heuristics (Principle #7)
+
+### Pre-Commit Checklist
+
+Before committing any change, verify the following:
+
+- [ ] All Scope Tests pass (Orchestrator, Three-Line, Delete)
+- [ ] All seven Boundary Review checks pass
+- [ ] Unit tests cover adapter parsing and normalization logic
+- [ ] Integration tests verify deterministic output on fixture codebases
+- [ ] No default exports are introduced
+- [ ] TypeScript strict mode produces no errors
+- [ ] The change does not require knowledge of which external tool is used
