@@ -123,6 +123,8 @@ Run `codepulse --mcp` to start CodePulse as a Model Context Protocol server usin
 The `measure` tool accepts:
 - `targetPath` (required) -- absolute path to the directory to measure
 - `axes` (optional) -- array of measurement axes to run
+- `topN` (optional) -- limit per-axis file-level results to the top N entries (useful for controlling output volume in context-limited environments)
+- `sortMetric` (optional) -- sort file-level results by this metric ID (descending) before truncation
 
 Returns a structured JSON report with axis metadata (name, description) and metric metadata (units, ranges, interpretation guidance).
 

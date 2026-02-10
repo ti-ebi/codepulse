@@ -16,6 +16,7 @@ import type { AxisId } from "../types/axis.js";
 import type { MeasurementConfig } from "../types/config.js";
 import type { AdapterRegistry } from "../adapter/registry.js";
 import { measure } from "../orchestration/orchestrator.js";
+import { sortFiles, limitFiles } from "../orchestration/report-transforms.js";
 import { formatJson } from "../formatter/json.js";
 import { VERSION } from "../version.js";
 
@@ -41,6 +42,8 @@ export interface MeasureToolResult {
 interface MeasureArgs {
   readonly targetPath: string;
   readonly axes?: readonly string[] | undefined;
+  readonly topN?: number | undefined;
+  readonly sortMetric?: string | undefined;
 }
 
 /**
@@ -78,7 +81,17 @@ export async function handleMeasureCall(
     };
   }
 
-  const jsonOutput = formatJson(result.value);
+  let report = result.value;
+
+  if (args.sortMetric !== undefined) {
+    report = sortFiles(report, args.sortMetric);
+  }
+
+  if (args.topN !== undefined) {
+    report = limitFiles(report, args.topN);
+  }
+
+  const jsonOutput = formatJson(report);
 
   return {
     content: [{ type: "text", text: jsonOutput }],
@@ -118,11 +131,32 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
             "Measurement axes to run. If omitted, all available axes are measured. " +
             `Valid values: ${axisIds.join(", ")}`,
           ),
+        topN: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe(
+            "Limit per-axis file-level results to the top N entries. " +
+            "Useful for controlling output volume in context-limited environments.",
+          ),
+        sortMetric: z
+          .string()
+          .optional()
+          .describe(
+            "Sort file-level results by this metric ID (descending) before truncation. " +
+            "Combine with topN to surface the most significant files first.",
+          ),
       },
     },
     async (args) => {
       const result = await handleMeasureCall(
-        { targetPath: args.targetPath, axes: args.axes },
+        {
+          targetPath: args.targetPath,
+          axes: args.axes,
+          topN: args.topN,
+          sortMetric: args.sortMetric,
+        },
         deps,
       );
       return {

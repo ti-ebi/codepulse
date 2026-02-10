@@ -15,6 +15,7 @@ import type { OutputFormat } from "../types/config.js";
 import type { MeasurementReport } from "../types/measurement.js";
 import type { Formatter, FormatterOptions } from "../formatter/formatter.js";
 import { measure } from "../orchestration/orchestrator.js";
+import { sortFiles, limitFiles } from "../orchestration/report-transforms.js";
 import { formatJson } from "../formatter/json.js";
 import { formatTerminalCompact } from "../formatter/terminal-compact.js";
 import { formatTerminalRich } from "../formatter/terminal-rich.js";
@@ -55,47 +56,6 @@ function selectFormatter(format: OutputFormat): Formatter {
     case "html":
       return formatHtml;
   }
-}
-
-/**
- * Returns a new report with each axis's files sorted descending by the given metric.
- * Files that lack the metric are sorted to the end in their original order.
- */
-function sortFiles(report: MeasurementReport, metricId: string): MeasurementReport {
-  return {
-    ...report,
-    axes: report.axes.map((axis) => {
-      const sorted = [...axis.files].sort((a, b) => {
-        const aMetric = a.metrics.find((m) => m.descriptor.id === metricId);
-        const bMetric = b.metrics.find((m) => m.descriptor.id === metricId);
-        if (aMetric === undefined && bMetric === undefined) return 0;
-        if (aMetric === undefined) return 1;
-        if (bMetric === undefined) return -1;
-        return bMetric.value - aMetric.value;
-      });
-      return { ...axis, files: sorted };
-    }),
-  };
-}
-
-/**
- * Returns a new report with each axis's files array truncated to at most `n` entries.
- * When truncation occurs, sets fileTotalCount so consumers know the full count.
- */
-function limitFiles(report: MeasurementReport, n: number): MeasurementReport {
-  return {
-    ...report,
-    axes: report.axes.map((axis) => {
-      if (axis.files.length <= n) {
-        return axis;
-      }
-      return {
-        ...axis,
-        files: axis.files.slice(0, n),
-        fileTotalCount: axis.files.length,
-      };
-    }),
-  };
 }
 
 /**

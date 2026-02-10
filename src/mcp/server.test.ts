@@ -200,4 +200,163 @@ describe("handleMeasureCall", () => {
 
     expect(result1).toEqual(result2);
   });
+
+  it("limits file-level results when topN is specified", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        { filePath: "/project/a.ts", metrics: [] },
+        { filePath: "/project/b.ts", metrics: [] },
+        { filePath: "/project/c.ts", metrics: [] },
+        { filePath: "/project/d.ts", metrics: [] },
+      ],
+    };
+    const adapter = makeStubAdapter("scc", ["size"], measurementWithFiles);
+    const deps = makeDeps({ registry: makeStubRegistry([adapter]) });
+
+    const result = await handleMeasureCall(
+      { targetPath: "/project/src", axes: ["size"], topN: 2 },
+      deps,
+    );
+
+    expect(result.isError).not.toBe(true);
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.axes[0].files).toHaveLength(2);
+    expect(parsed.axes[0].fileTotalCount).toBe(4);
+  });
+
+  it("does not truncate when topN exceeds file count", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        { filePath: "/project/a.ts", metrics: [] },
+        { filePath: "/project/b.ts", metrics: [] },
+      ],
+    };
+    const adapter = makeStubAdapter("scc", ["size"], measurementWithFiles);
+    const deps = makeDeps({ registry: makeStubRegistry([adapter]) });
+
+    const result = await handleMeasureCall(
+      { targetPath: "/project/src", axes: ["size"], topN: 10 },
+      deps,
+    );
+
+    expect(result.isError).not.toBe(true);
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.axes[0].files).toHaveLength(2);
+    expect(parsed.axes[0].fileTotalCount).toBeUndefined();
+  });
+
+  it("sorts file-level results by sortMetric descending", async () => {
+    const codeLineDescriptor = {
+      id: "code-lines",
+      name: "Code Lines",
+      unit: "lines",
+      min: 0,
+      max: null,
+      interpretation: "Lines of code",
+    };
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        {
+          filePath: "/project/small.ts",
+          metrics: [{ descriptor: codeLineDescriptor, value: 10 }],
+        },
+        {
+          filePath: "/project/large.ts",
+          metrics: [{ descriptor: codeLineDescriptor, value: 500 }],
+        },
+        {
+          filePath: "/project/medium.ts",
+          metrics: [{ descriptor: codeLineDescriptor, value: 100 }],
+        },
+      ],
+    };
+    const adapter = makeStubAdapter("scc", ["size"], measurementWithFiles);
+    const deps = makeDeps({ registry: makeStubRegistry([adapter]) });
+
+    const result = await handleMeasureCall(
+      { targetPath: "/project/src", axes: ["size"], sortMetric: "code-lines" },
+      deps,
+    );
+
+    expect(result.isError).not.toBe(true);
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.axes[0].files[0].filePath).toBe("/project/large.ts");
+    expect(parsed.axes[0].files[1].filePath).toBe("/project/medium.ts");
+    expect(parsed.axes[0].files[2].filePath).toBe("/project/small.ts");
+  });
+
+  it("sorts files before applying topN truncation", async () => {
+    const codeLineDescriptor = {
+      id: "code-lines",
+      name: "Code Lines",
+      unit: "lines",
+      min: 0,
+      max: null,
+      interpretation: "Lines of code",
+    };
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        {
+          filePath: "/project/small.ts",
+          metrics: [{ descriptor: codeLineDescriptor, value: 10 }],
+        },
+        {
+          filePath: "/project/large.ts",
+          metrics: [{ descriptor: codeLineDescriptor, value: 500 }],
+        },
+        {
+          filePath: "/project/medium.ts",
+          metrics: [{ descriptor: codeLineDescriptor, value: 100 }],
+        },
+      ],
+    };
+    const adapter = makeStubAdapter("scc", ["size"], measurementWithFiles);
+    const deps = makeDeps({ registry: makeStubRegistry([adapter]) });
+
+    const result = await handleMeasureCall(
+      { targetPath: "/project/src", axes: ["size"], sortMetric: "code-lines", topN: 2 },
+      deps,
+    );
+
+    expect(result.isError).not.toBe(true);
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.axes[0].files).toHaveLength(2);
+    expect(parsed.axes[0].files[0].filePath).toBe("/project/large.ts");
+    expect(parsed.axes[0].files[1].filePath).toBe("/project/medium.ts");
+    expect(parsed.axes[0].fileTotalCount).toBe(3);
+  });
+
+  it("does not sort or truncate when neither topN nor sortMetric is provided", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        { filePath: "/project/c.ts", metrics: [] },
+        { filePath: "/project/a.ts", metrics: [] },
+        { filePath: "/project/b.ts", metrics: [] },
+      ],
+    };
+    const adapter = makeStubAdapter("scc", ["size"], measurementWithFiles);
+    const deps = makeDeps({ registry: makeStubRegistry([adapter]) });
+
+    const result = await handleMeasureCall(
+      { targetPath: "/project/src", axes: ["size"] },
+      deps,
+    );
+
+    expect(result.isError).not.toBe(true);
+    const parsed = JSON.parse(result.content[0]!.text);
+    expect(parsed.axes[0].files).toHaveLength(3);
+    expect(parsed.axes[0].files[0].filePath).toBe("/project/c.ts");
+    expect(parsed.axes[0].files[1].filePath).toBe("/project/a.ts");
+    expect(parsed.axes[0].files[2].filePath).toBe("/project/b.ts");
+  });
 });
