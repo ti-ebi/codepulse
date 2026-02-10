@@ -102,7 +102,12 @@ function renderAxis(axis: AxisMeasurement): string {
 
   if (axis.files.length > 0) {
     const fileCount = axis.files.length;
-    const fileLabel = fileCount === 1 ? "1 file" : `${fileCount} files`;
+    let fileLabel: string;
+    if (axis.fileTotalCount !== undefined) {
+      fileLabel = `${fileCount} of ${axis.fileTotalCount} files`;
+    } else {
+      fileLabel = fileCount === 1 ? "1 file" : `${fileCount} files`;
+    }
     lines.push(`<details class="files-section">`);
     lines.push(`<summary class="files-toggle">${fileLabel}</summary>`);
     for (const file of axis.files) {

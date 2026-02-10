@@ -93,7 +93,11 @@ export function formatTerminalRich(report: MeasurementReport, options?: Formatte
     // Per-file breakdown
     if (axis.files.length > 0) {
       lines.push("");
-      lines.push("  Files:");
+      if (axis.fileTotalCount !== undefined) {
+        lines.push(`  Files (${axis.files.length} of ${axis.fileTotalCount}):`);
+      } else {
+        lines.push("  Files:");
+      }
       for (const file of axis.files) {
         lines.push(`    ${file.filePath}`);
         for (const metric of file.metrics) {

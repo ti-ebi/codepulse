@@ -448,6 +448,55 @@ describe("run", () => {
     expect(output.axes[0].files).toHaveLength(3);
   });
 
+  it("includes fileTotalCount when --top truncates file results", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        { filePath: "/project/a.ts", metrics: [] },
+        { filePath: "/project/b.ts", metrics: [] },
+        { filePath: "/project/c.ts", metrics: [] },
+        { filePath: "/project/d.ts", metrics: [] },
+        { filePath: "/project/e.ts", metrics: [] },
+      ],
+    };
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("scc", ["size"], measurementWithFiles));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "--top", "2", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = JSON.parse(deps.stdoutLines[0]!);
+    expect(output.axes[0].files).toHaveLength(2);
+    expect(output.axes[0].fileTotalCount).toBe(5);
+  });
+
+  it("does not include fileTotalCount when --top does not truncate", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        { filePath: "/project/a.ts", metrics: [] },
+        { filePath: "/project/b.ts", metrics: [] },
+      ],
+    };
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("scc", ["size"], measurementWithFiles));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "--top", "5", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = JSON.parse(deps.stdoutLines[0]!);
+    expect(output.axes[0].files).toHaveLength(2);
+    expect(output.axes[0].fileTotalCount).toBeUndefined();
+  });
+
   it("suppresses colors when both --no-color and noColorEnv are set", async () => {
     const boundedMeasurement: AxisMeasurement = {
       axisId: "duplication",

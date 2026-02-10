@@ -55,6 +55,11 @@ export interface AxisMeasurement {
   readonly summary: readonly MetricValue[];
   /** Per-file breakdown, if the axis supports it. */
   readonly files: readonly FileMeasurement[];
+  /**
+   * Total number of files before truncation, if file-level results were
+   * limited (e.g., by --top N). Undefined means the files array is complete.
+   */
+  readonly fileTotalCount?: number | undefined;
 }
 
 /**

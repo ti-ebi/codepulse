@@ -577,6 +577,75 @@ describe("formatTerminalRich", () => {
     expect(output).not.toMatch(/\x1b\[\d+m.*1500/);
   });
 
+  it("shows truncation notice when fileTotalCount exceeds displayed files", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "size",
+          summary: [],
+          files: [
+            {
+              filePath: "/project/src/a.ts",
+              metrics: [
+                {
+                  descriptor: {
+                    id: "lines",
+                    name: "Lines",
+                    unit: "lines",
+                    min: 0,
+                    max: null,
+                    interpretation: "Lines in file",
+                  },
+                  value: 100,
+                },
+              ],
+            },
+            {
+              filePath: "/project/src/b.ts",
+              metrics: [
+                {
+                  descriptor: {
+                    id: "lines",
+                    name: "Lines",
+                    unit: "lines",
+                    min: 0,
+                    max: null,
+                    interpretation: "Lines in file",
+                  },
+                  value: 200,
+                },
+              ],
+            },
+          ],
+          fileTotalCount: 10,
+        },
+      ],
+    });
+
+    const output = formatTerminalRich(report);
+    expect(output).toContain("2 of 10");
+  });
+
+  it("does not show truncation notice when fileTotalCount is absent", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "size",
+          summary: [],
+          files: [
+            {
+              filePath: "/project/src/a.ts",
+              metrics: [],
+            },
+          ],
+        },
+      ],
+    });
+
+    const output = formatTerminalRich(report);
+    expect(output).not.toMatch(/\d+ of \d+/);
+  });
+
   it("color-codes per-file metric values for bounded metrics", () => {
     const report = makeReport({
       axes: [

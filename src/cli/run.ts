@@ -59,14 +59,21 @@ function selectFormatter(format: OutputFormat): Formatter {
 
 /**
  * Returns a new report with each axis's files array truncated to at most `n` entries.
+ * When truncation occurs, sets fileTotalCount so consumers know the full count.
  */
 function limitFiles(report: MeasurementReport, n: number): MeasurementReport {
   return {
     ...report,
-    axes: report.axes.map((axis) => ({
-      ...axis,
-      files: axis.files.slice(0, n),
-    })),
+    axes: report.axes.map((axis) => {
+      if (axis.files.length <= n) {
+        return axis;
+      }
+      return {
+        ...axis,
+        files: axis.files.slice(0, n),
+        fileTotalCount: axis.files.length,
+      };
+    }),
   };
 }
 

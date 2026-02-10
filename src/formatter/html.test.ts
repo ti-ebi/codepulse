@@ -681,6 +681,53 @@ describe("formatHtml", () => {
     expect(output).not.toContain("1 files");
   });
 
+  it("shows truncation notice in file summary when fileTotalCount is set", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "complexity",
+          summary: [],
+          files: [
+            {
+              filePath: "/project/src/a.ts",
+              metrics: [],
+            },
+            {
+              filePath: "/project/src/b.ts",
+              metrics: [],
+            },
+          ],
+          fileTotalCount: 20,
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    expect(output).toContain("2 of 20");
+  });
+
+  it("does not show truncation notice when fileTotalCount is absent", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "complexity",
+          summary: [],
+          files: [
+            {
+              filePath: "/project/src/a.ts",
+              metrics: [],
+            },
+            {
+              filePath: "/project/src/b.ts",
+              metrics: [],
+            },
+          ],
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    expect(output).not.toContain("2 of");
+  });
+
   it("does not include open attribute on details by default", () => {
     const report = makeReport({
       axes: [

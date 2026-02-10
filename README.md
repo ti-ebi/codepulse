@@ -68,7 +68,7 @@ codepulse [options] <target-path>
 | `--format <format>` | `-f` | Output format: `terminal-compact` (default), `terminal-rich`, `json`, `html` |
 | `--axis <axis>` | `-a` | Measurement axis to run (repeatable). Omit to run all available axes |
 | `--output <path>` | `-o` | Write report to file instead of stdout. Format is inferred from `.json`/`.html` extension if `--format` is omitted |
-| `--top <N>` | `-n` | Limit per-axis file-level results to the top N entries |
+| `--top <N>` | `-n` | Limit per-axis file-level results to the top N entries. When truncated, the total file count is shown in terminal/HTML output and included as `fileTotalCount` in JSON |
 | `--no-color` | | Disable ANSI color codes in terminal output (also honors `NO_COLOR` env var) |
 | `--mcp` | | Start as MCP server (stdio transport) for AI agent integration |
 | `--list-axes` | | List available measurement axes with descriptions |

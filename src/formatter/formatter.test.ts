@@ -308,6 +308,44 @@ describe("formatJson", () => {
     expect(axis["axisDescription"]).toBe("");
   });
 
+  it("includes fileTotalCount when present on axis measurement", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "size",
+          summary: [],
+          files: [
+            { filePath: "/project/a.ts", metrics: [] },
+            { filePath: "/project/b.ts", metrics: [] },
+          ],
+          fileTotalCount: 10,
+        },
+      ],
+    });
+
+    const parsed = JSON.parse(formatJson(report)) as Record<string, unknown>;
+    const axes = parsed["axes"] as Array<Record<string, unknown>>;
+    expect(axes[0]!["fileTotalCount"]).toBe(10);
+  });
+
+  it("omits fileTotalCount when not present on axis measurement", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "size",
+          summary: [],
+          files: [
+            { filePath: "/project/a.ts", metrics: [] },
+          ],
+        },
+      ],
+    });
+
+    const parsed = JSON.parse(formatJson(report)) as Record<string, unknown>;
+    const axes = parsed["axes"] as Array<Record<string, unknown>>;
+    expect(axes[0]!["fileTotalCount"]).toBeUndefined();
+  });
+
   it("includes axis name in warning entries", () => {
     const report = makeReport({
       warnings: [

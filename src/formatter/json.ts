@@ -31,6 +31,9 @@ export function formatJson(report: MeasurementReport): string {
       axisDescription: axisDescription(axis),
       summary: axis.summary,
       files: axis.files,
+      ...(axis.fileTotalCount !== undefined
+        ? { fileTotalCount: axis.fileTotalCount }
+        : {}),
     })),
     warnings: report.warnings.map((w) => ({
       axisId: w.axisId,
