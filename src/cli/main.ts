@@ -14,6 +14,7 @@ import { AdapterRegistry } from "../adapter/registry.js";
 import { createSccAdapter } from "../adapter/scc.js";
 import { createJscpdAdapter } from "../adapter/jscpd.js";
 import { createKnipAdapter } from "../adapter/knip.js";
+import { createMadgeAdapter } from "../adapter/madge.js";
 import { run } from "./run.js";
 import type { CliDeps } from "./run.js";
 
@@ -21,6 +22,7 @@ const registry = new AdapterRegistry();
 registry.register(createSccAdapter());
 registry.register(createJscpdAdapter());
 registry.register(createKnipAdapter());
+registry.register(createMadgeAdapter());
 
 const deps: CliDeps = {
   stdout: (text: string) => node_process.stdout.write(text + "\n"),

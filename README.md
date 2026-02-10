@@ -2,7 +2,7 @@
 
 Quantitative code quality measurement from the command line.
 
-CodePulse measures the internal quality of source code across multiple dimensions -- complexity, duplication, dead code, size, and more. It orchestrates existing specialized tools (scc, jscpd, knip, etc.) through a unified interface, so you get a single coherent report instead of running each tool separately.
+CodePulse measures the internal quality of source code across multiple dimensions -- complexity, duplication, dead code, dependency health, size, and more. It orchestrates existing specialized tools (scc, jscpd, knip, madge, etc.) through a unified interface, so you get a single coherent report instead of running each tool separately.
 
 ## Key Characteristics
 
@@ -20,7 +20,7 @@ CodePulse measures the internal quality of source code across multiple dimension
 | Duplication | Copy-paste detection across the codebase | [jscpd](https://github.com/kucherenko/jscpd) |
 | Dead Code | Unused exports, unreachable code, orphaned files | [knip](https://github.com/webpro-nl/knip) |
 | Size | Lines of code, file count, function length distribution | [scc](https://github.com/boyter/scc) |
-| Dependency Health | Dependency graph depth, circular dependencies | TBD |
+| Dependency Health | Dependency graph depth, circular dependencies | [madge](https://github.com/pahen/madge) |
 | Test Coverage | Ratio of tested to untested code paths | TBD |
 
 ## Output Formats

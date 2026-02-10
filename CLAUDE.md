@@ -21,7 +21,7 @@ AI-assisted development accelerates code generation but also accelerates the acc
 - Language: TypeScript (strict mode)
 - Runtime: Node.js >= 18
 - Module system: ESM (no CommonJS)
-- External tools: scc (size/complexity), jscpd (duplication), knip (dead code), and others via adapter pattern
+- External tools: scc (size/complexity), jscpd (duplication), knip (dead code), madge (dependency health), and others via adapter pattern
 
 ## Architecture Decisions
 
@@ -44,7 +44,7 @@ CodePulse measures code along these independent axes. Each axis delegates analys
 | Duplication | Copy-paste detection across the codebase | jscpd |
 | Dead Code | Unused exports, unreachable code, orphaned files | knip |
 | Size | Lines of code, file count, function length distribution | scc |
-| Dependency Health | Dependency graph depth, circular dependencies | TBD |
+| Dependency Health | Dependency graph depth, circular dependencies | madge |
 | Security | Known vulnerability patterns (static only) | TBD |
 | Consistency | Naming conventions, formatting uniformity | TBD |
 | Test Coverage | Ratio of tested to untested code paths | TBD |
