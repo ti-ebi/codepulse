@@ -68,6 +68,7 @@ codepulse [options] <target-path>
 | `--format <format>` | `-f` | Output format: `terminal-compact` (default), `terminal-rich`, `json`, `html` |
 | `--axis <axis>` | `-a` | Measurement axis to run (repeatable). Omit to run all available axes |
 | `--output <path>` | `-o` | Write report to file instead of stdout. Format is inferred from `.json`/`.html` extension if `--format` is omitted |
+| `--top <N>` | `-n` | Limit per-axis file-level results to the top N entries |
 | `--no-color` | | Disable ANSI color codes in terminal output (also honors `NO_COLOR` env var) |
 | `--mcp` | | Start as MCP server (stdio transport) for AI agent integration |
 | `--list-axes` | | List available measurement axes with descriptions |
@@ -92,6 +93,9 @@ codepulse -o report.html ./my-project
 
 # Rich terminal output for security and dead code
 codepulse -f terminal-rich -a security -a dead-code ./src
+
+# Show only the top 5 files per axis (useful for large codebases)
+codepulse --top 5 ./my-project
 
 # List available measurement axes
 codepulse --list-axes

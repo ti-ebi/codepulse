@@ -36,6 +36,7 @@ const KNOWN_FLAGS: ReadonlySet<string> = new Set([
   "--format",
   "--axis",
   "--output",
+  "--top",
   "--help",
   "--version",
   "--mcp",
@@ -52,6 +53,7 @@ const SHORT_TO_LONG: ReadonlyMap<string, string> = new Map([
   ["-o", "--output"],
   ["-h", "--help"],
   ["-V", "--version"],
+  ["-n", "--top"],
 ]);
 
 /**
@@ -106,6 +108,7 @@ export function parseArgs(argv: readonly string[]): ParseResult {
   let outputPath: string | undefined;
   let targetPath: string | undefined;
   let noColor = false;
+  let topN: number | undefined;
 
   let i = 0;
   while (i < expandedArgv.length) {
@@ -179,6 +182,29 @@ export function parseArgs(argv: readonly string[]): ParseResult {
       continue;
     }
 
+    if (arg === "--top") {
+      const value = expandedArgv[i + 1];
+      if (value === undefined) {
+        return {
+          ok: false,
+          error: { kind: "error", message: `${originalArg} requires a value` },
+        };
+      }
+      const parsed = Number(value);
+      if (!Number.isInteger(parsed) || parsed < 1) {
+        return {
+          ok: false,
+          error: {
+            kind: "error",
+            message: `--top requires a positive integer, got "${value}"`,
+          },
+        };
+      }
+      topN = parsed;
+      i += 2;
+      continue;
+    }
+
     if (arg.startsWith("-")) {
       if (!KNOWN_FLAGS.has(arg)) {
         return {
@@ -225,6 +251,7 @@ export function parseArgs(argv: readonly string[]): ParseResult {
     outputPath,
     thresholds: [],
     noColor,
+    topN,
   };
 
   return { ok: true, value: config };
@@ -270,6 +297,7 @@ function helpText(): string {
     "  -a, --axis <axis>       Measurement axis to run (repeatable)",
     "  -o, --output <path>     Write output to file instead of stdout",
     "                          (format is inferred from .json/.html extension if --format is omitted)",
+    "  -n, --top <N>           Limit per-axis file-level results to the top N entries",
     "      --no-color          Disable ANSI color codes in terminal output (also honors NO_COLOR env var)",
     "      --mcp               Start as MCP server (stdio transport)",
     "      --list-axes         List available measurement axes",

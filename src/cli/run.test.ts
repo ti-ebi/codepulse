@@ -386,6 +386,68 @@ describe("run", () => {
     expect(output).toMatch(/\x1b\[\d+m/);
   });
 
+  it("limits per-axis file results when --top is specified", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [
+        {
+          descriptor: {
+            id: "total-lines",
+            name: "Total Lines",
+            unit: "lines",
+            min: 0,
+            max: null,
+            interpretation: "Total number of lines across all files",
+          },
+          value: 500,
+        },
+      ],
+      files: [
+        { filePath: "/project/a.ts", metrics: [] },
+        { filePath: "/project/b.ts", metrics: [] },
+        { filePath: "/project/c.ts", metrics: [] },
+        { filePath: "/project/d.ts", metrics: [] },
+        { filePath: "/project/e.ts", metrics: [] },
+      ],
+    };
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("scc", ["size"], measurementWithFiles));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "--top", "2", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = JSON.parse(deps.stdoutLines[0]!);
+    expect(output.axes[0].files).toHaveLength(2);
+    expect(output.axes[0].files[0].filePath).toBe("/project/a.ts");
+    expect(output.axes[0].files[1].filePath).toBe("/project/b.ts");
+  });
+
+  it("does not limit files when --top is not specified", async () => {
+    const measurementWithFiles: AxisMeasurement = {
+      axisId: "size",
+      summary: [],
+      files: [
+        { filePath: "/project/a.ts", metrics: [] },
+        { filePath: "/project/b.ts", metrics: [] },
+        { filePath: "/project/c.ts", metrics: [] },
+      ],
+    };
+    const deps = createTestDeps();
+    deps.registry.register(createMockAdapter("scc", ["size"], measurementWithFiles));
+
+    const exitCode = await run(
+      ["--format", "json", "--axis", "size", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = JSON.parse(deps.stdoutLines[0]!);
+    expect(output.axes[0].files).toHaveLength(3);
+  });
+
   it("suppresses colors when both --no-color and noColorEnv are set", async () => {
     const boundedMeasurement: AxisMeasurement = {
       axisId: "duplication",

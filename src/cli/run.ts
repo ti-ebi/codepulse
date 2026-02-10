@@ -58,6 +58,19 @@ function selectFormatter(format: OutputFormat): Formatter {
 }
 
 /**
+ * Returns a new report with each axis's files array truncated to at most `n` entries.
+ */
+function limitFiles(report: MeasurementReport, n: number): MeasurementReport {
+  return {
+    ...report,
+    axes: report.axes.map((axis) => ({
+      ...axis,
+      files: axis.files.slice(0, n),
+    })),
+  };
+}
+
+/**
  * Run the CLI with the given argument array and dependencies.
  * Returns a process exit code (0 = success, 1 = error).
  */
@@ -113,7 +126,10 @@ export async function run(
     return 1;
   }
 
-  const report: MeasurementReport = measureResult.value;
+  const rawReport: MeasurementReport = measureResult.value;
+  const report: MeasurementReport = config.topN !== undefined
+    ? limitFiles(rawReport, config.topN)
+    : rawReport;
   const formatter = selectFormatter(config.outputFormat);
   const noColor = config.noColor || deps.noColorEnv === true;
   const formatterOptions: FormatterOptions = { noColor };

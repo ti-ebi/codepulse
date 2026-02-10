@@ -415,8 +415,79 @@ describe("parseArgs", () => {
       expect(result.error.message).toContain("-f");
       expect(result.error.message).toContain("-a");
       expect(result.error.message).toContain("-o");
+      expect(result.error.message).toContain("-n");
       expect(result.error.message).toContain("-h");
       expect(result.error.message).toContain("-V");
+    });
+  });
+
+  describe("--top flag", () => {
+    it("defaults topN to undefined when not specified", () => {
+      const result = parseArgs(["/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.topN).toBeUndefined();
+    });
+
+    it("accepts --top with a positive integer", () => {
+      const result = parseArgs(["--top", "10", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.topN).toBe(10);
+    });
+
+    it("accepts -n as a short alias for --top", () => {
+      const result = parseArgs(["-n", "5", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.topN).toBe(5);
+    });
+
+    it("returns an error when --top has no value", () => {
+      const result = parseArgs(["/project", "--top"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("--top requires a value");
+    });
+
+    it("returns an error when -n has no value", () => {
+      const result = parseArgs(["/project", "-n"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("-n requires a value");
+    });
+
+    it("returns an error when --top value is not a positive integer", () => {
+      const result = parseArgs(["--top", "0", "/project"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("positive integer");
+    });
+
+    it("returns an error when --top value is negative", () => {
+      const result = parseArgs(["--top", "-1", "/project"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+    });
+
+    it("returns an error when --top value is not a number", () => {
+      const result = parseArgs(["--top", "abc", "/project"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("positive integer");
+    });
+
+    it("combines with other flags", () => {
+      const result = parseArgs(["--format", "json", "--top", "3", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.topN).toBe(3);
+      expect(result.value.outputFormat).toBe("json");
     });
   });
 

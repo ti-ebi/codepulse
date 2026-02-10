@@ -39,4 +39,6 @@ export interface MeasurementConfig {
   readonly thresholds: readonly MetricThreshold[];
   /** Disable ANSI color codes in terminal output. */
   readonly noColor: boolean;
+  /** Limit per-axis file-level results to the top N entries. Undefined means no limit. */
+  readonly topN?: number | undefined;
 }
