@@ -255,6 +255,31 @@ describe("parseArgs", () => {
     });
   });
 
+  describe("--list-axes flag", () => {
+    it("returns a list-axes result when --list-axes is passed", () => {
+      const result = parseArgs(["--list-axes"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("list-axes");
+    });
+
+    it("returns list-axes even with other arguments", () => {
+      const result = parseArgs(["--list-axes", "/project"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("list-axes");
+    });
+
+    it("includes axis information in the message", () => {
+      const result = parseArgs(["--list-axes"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.message).toContain("complexity");
+      expect(result.error.message).toContain("size");
+      expect(result.error.message).toContain("duplication");
+    });
+  });
+
   describe("unknown flags", () => {
     it("returns an error for unrecognized flags", () => {
       const result = parseArgs(["--unknown", "/project"]);

@@ -67,7 +67,7 @@ export async function run(
 
   if (!parseResult.ok) {
     const { kind, message } = parseResult.error;
-    if (kind === "help" || kind === "version") {
+    if (kind === "help" || kind === "version" || kind === "list-axes") {
       deps.stdout(message);
       return 0;
     }

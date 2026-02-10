@@ -69,6 +69,7 @@ codepulse [options] <target-path>
 | `--axis <axis>` | Measurement axis to run (repeatable). Omit to run all available axes |
 | `--output <path>` | Write report to file instead of stdout. Format is inferred from `.json`/`.html` extension if `--format` is omitted |
 | `--mcp` | Start as MCP server (stdio transport) for AI agent integration |
+| `--list-axes` | List available measurement axes with descriptions |
 | `--help` | Show help message |
 | `--version` | Show version number |
 
@@ -90,6 +91,9 @@ codepulse --output report.html ./my-project
 
 # Rich terminal output for security and dead code
 codepulse --format terminal-rich --axis security --axis dead-code ./src
+
+# List available measurement axes
+codepulse --list-axes
 
 # Start as MCP server for AI agent access
 codepulse --mcp

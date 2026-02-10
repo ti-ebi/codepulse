@@ -279,4 +279,15 @@ describe("run", () => {
 
     expect(exitCode).toBe(0);
   });
+
+  it("returns exit code 0 and prints axes when --list-axes is passed", async () => {
+    const deps = createTestDeps();
+
+    const exitCode = await run(["--list-axes"], deps);
+
+    expect(exitCode).toBe(0);
+    expect(deps.stdoutLines.length).toBe(1);
+    expect(deps.stdoutLines[0]).toContain("complexity");
+    expect(deps.stdoutLines[0]).toContain("size");
+  });
 });

@@ -16,7 +16,7 @@ import { AXES } from "../types/axis.js";
  * Non-config results from parsing: help request, version request, or error.
  */
 export interface ParseError {
-  readonly kind: "error" | "help" | "version" | "mcp";
+  readonly kind: "error" | "help" | "version" | "mcp" | "list-axes";
   readonly message: string;
 }
 
@@ -38,6 +38,7 @@ const KNOWN_FLAGS: ReadonlySet<string> = new Set([
   "--help",
   "--version",
   "--mcp",
+  "--list-axes",
 ]);
 
 /**
@@ -73,6 +74,13 @@ export function parseArgs(argv: readonly string[]): ParseResult {
     return {
       ok: false,
       error: { kind: "mcp", message: "Starting MCP server" },
+    };
+  }
+
+  if (argv.includes("--list-axes")) {
+    return {
+      ok: false,
+      error: { kind: "list-axes", message: listAxesText() },
     };
   }
 
@@ -216,6 +224,16 @@ function inferFormatFromExtension(filePath: string): OutputFormat | undefined {
   return EXTENSION_FORMAT_MAP.get(ext);
 }
 
+function listAxesText(): string {
+  return [
+    "Available measurement axes:",
+    "",
+    ...[...AXES.values()].map(
+      (a) => `  ${a.id.padEnd(20)} ${a.description}`,
+    ),
+  ].join("\n");
+}
+
 function helpText(): string {
   return [
     "Usage: codepulse [options] <target-path>",
@@ -228,6 +246,7 @@ function helpText(): string {
     "  --output <path>     Write output to file instead of stdout",
     "                      (format is inferred from .json/.html extension if --format is omitted)",
     "  --mcp               Start as MCP server (stdio transport)",
+    "  --list-axes         List available measurement axes",
     "  --help              Show this help message",
     "  --version           Show version number",
     "",
