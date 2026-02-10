@@ -55,9 +55,29 @@ function resolveRequestedAxes(config: MeasurementConfig): readonly AxisId[] {
 }
 
 /**
+ * For a single axis, find the first available adapter by checking
+ * each registered adapter's availability in order.
+ */
+async function resolveAxisAdapter(
+  registry: AdapterRegistry,
+  axisId: AxisId,
+): Promise<{ axisId: AxisId; adapter: ToolAdapter | null }> {
+  const adapters = registry.getAdaptersForAxis(axisId);
+  for (const adapter of adapters) {
+    const availability = await adapter.checkAvailability();
+    if (availability.available) {
+      return { axisId, adapter };
+    }
+  }
+  return { axisId, adapter: null };
+}
+
+/**
  * For each requested axis, pick the first available adapter.
  * Returns a map from axis to adapter, plus a list of axes
  * that have no adapter registered.
+ *
+ * Availability checks for different axes run concurrently.
  */
 async function resolveAdapters(
   registry: AdapterRegistry,
@@ -66,23 +86,17 @@ async function resolveAdapters(
   resolved: Map<AxisId, ToolAdapter>;
   unavailable: AxisId[];
 }> {
+  const results = await Promise.all(
+    axes.map((axisId) => resolveAxisAdapter(registry, axisId)),
+  );
+
   const resolved = new Map<AxisId, ToolAdapter>();
   const unavailable: AxisId[] = [];
 
-  for (const axisId of axes) {
-    const adapters = registry.getAdaptersForAxis(axisId);
-    let found = false;
-
-    for (const adapter of adapters) {
-      const availability = await adapter.checkAvailability();
-      if (availability.available) {
-        resolved.set(axisId, adapter);
-        found = true;
-        break;
-      }
-    }
-
-    if (!found) {
+  for (const { axisId, adapter } of results) {
+    if (adapter !== null) {
+      resolved.set(axisId, adapter);
+    } else {
       unavailable.push(axisId);
     }
   }

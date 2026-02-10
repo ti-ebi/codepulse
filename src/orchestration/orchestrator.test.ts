@@ -454,4 +454,63 @@ describe("measure", () => {
     );
     expect(lastStartIndex).toBeLessThan(firstEndIndex);
   });
+
+  it("checks adapter availability concurrently", async () => {
+    const DELAY_MS = 50;
+    const availabilityLog: string[] = [];
+
+    function createSlowAvailabilityAdapter(
+      id: string,
+      axis: AxisId,
+    ): ToolAdapter {
+      return {
+        id,
+        toolName: `slow-avail-${id}`,
+        supportedAxes: [axis],
+        async checkAvailability(): Promise<ToolAvailability> {
+          availabilityLog.push(`start:${id}`);
+          await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+          availabilityLog.push(`end:${id}`);
+          return { available: true, version: "1.0.0" };
+        },
+        async measure(
+          _targetPath: string,
+          axisId: AxisId,
+        ): Promise<Result<AxisMeasurement, AdapterError>> {
+          return { ok: true, value: { axisId, summary: [], files: [] } };
+        },
+      };
+    }
+
+    const registry = new AdapterRegistry();
+    registry.register(createSlowAvailabilityAdapter("adapter-a", "complexity"));
+    registry.register(createSlowAvailabilityAdapter("adapter-b", "duplication"));
+    registry.register(createSlowAvailabilityAdapter("adapter-c", "size"));
+    const config = createConfig({ axes: ["complexity", "duplication", "size"] });
+
+    const start = Date.now();
+    const result = await measure(config, registry, { timestampFn: fixedTimestampFn });
+    const elapsed = Date.now() - start;
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.axes).toHaveLength(3);
+    }
+
+    // If sequential, elapsed ≥ 3 * DELAY_MS (150ms) for availability alone.
+    // If parallel, elapsed ≈ DELAY_MS (50ms) for availability.
+    // Use a generous threshold to avoid flaky timing in CI.
+    expect(elapsed).toBeLessThan(DELAY_MS * 2.5);
+
+    // All availability checks should start before any finishes.
+    const starts = availabilityLog.filter((e) => e.startsWith("start:"));
+    const ends = availabilityLog.filter((e) => e.startsWith("end:"));
+    expect(starts).toHaveLength(3);
+    expect(ends).toHaveLength(3);
+    const firstEndIndex = availabilityLog.findIndex((e) => e.startsWith("end:"));
+    const lastStartIndex = availabilityLog.lastIndexOf(
+      availabilityLog.filter((e) => e.startsWith("start:")).at(-1)!,
+    );
+    expect(lastStartIndex).toBeLessThan(firstEndIndex);
+  });
 });
