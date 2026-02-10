@@ -18,6 +18,7 @@ import { measure } from "../orchestration/orchestrator.js";
 import { formatJson } from "../formatter/json.js";
 import { formatTerminalCompact } from "../formatter/terminal-compact.js";
 import { formatTerminalRich } from "../formatter/terminal-rich.js";
+import { formatHtml } from "../formatter/html.js";
 import { parseArgs } from "./parse-args.js";
 
 /**
@@ -41,8 +42,7 @@ function selectFormatter(format: OutputFormat): Formatter {
     case "terminal-rich":
       return formatTerminalRich;
     case "html":
-      // HTML formatter not yet implemented; fall back to JSON.
-      return formatJson;
+      return formatHtml;
   }
 }
 
