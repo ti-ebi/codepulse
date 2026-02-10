@@ -254,7 +254,7 @@ function helpText(): string {
     "  --axis <axis>       Measurement axis to run (repeatable)",
     "  --output <path>     Write output to file instead of stdout",
     "                      (format is inferred from .json/.html extension if --format is omitted)",
-    "  --no-color          Disable ANSI color codes in terminal output",
+    "  --no-color          Disable ANSI color codes in terminal output (also honors NO_COLOR env var)",
     "  --mcp               Start as MCP server (stdio transport)",
     "  --list-axes         List available measurement axes",
     "  --help              Show this help message",

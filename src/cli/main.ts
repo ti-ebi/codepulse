@@ -39,6 +39,7 @@ const deps: CliDeps = {
   stdout: (text: string) => node_process.stdout.write(text + "\n"),
   stderr: (text: string) => node_process.stderr.write(text + "\n"),
   registry,
+  noColorEnv: node_process.env["NO_COLOR"] !== undefined,
   writeFn: async (path: string, content: string) => {
     await node_fs.mkdir(node_path.dirname(path), { recursive: true });
     await node_fs.writeFile(path, content, "utf-8");

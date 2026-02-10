@@ -40,6 +40,8 @@ export interface CliDeps {
   readonly writeFn?: (path: string, content: string) => Promise<void>;
   readonly startMcpServer?: () => Promise<void>;
   readonly statFn?: (path: string) => Promise<StatResult>;
+  /** When true, suppresses ANSI color codes (mirrors the NO_COLOR env var). */
+  readonly noColorEnv?: boolean;
 }
 
 function selectFormatter(format: OutputFormat): Formatter {
@@ -113,7 +115,8 @@ export async function run(
 
   const report: MeasurementReport = measureResult.value;
   const formatter = selectFormatter(config.outputFormat);
-  const formatterOptions: FormatterOptions = { noColor: config.noColor };
+  const noColor = config.noColor || deps.noColorEnv === true;
+  const formatterOptions: FormatterOptions = { noColor };
   const output = formatter(report, formatterOptions);
 
   if (config.outputPath !== undefined && deps.writeFn !== undefined) {

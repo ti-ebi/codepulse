@@ -68,7 +68,7 @@ codepulse [options] <target-path>
 | `--format <format>` | Output format: `terminal-compact` (default), `terminal-rich`, `json`, `html` |
 | `--axis <axis>` | Measurement axis to run (repeatable). Omit to run all available axes |
 | `--output <path>` | Write report to file instead of stdout. Format is inferred from `.json`/`.html` extension if `--format` is omitted |
-| `--no-color` | Disable ANSI color codes in terminal output |
+| `--no-color` | Disable ANSI color codes in terminal output (also honors `NO_COLOR` env var) |
 | `--mcp` | Start as MCP server (stdio transport) for AI agent integration |
 | `--list-axes` | List available measurement axes with descriptions |
 | `--help` | Show help message |
@@ -98,6 +98,9 @@ codepulse --list-axes
 
 # Plain output for CI/CD logs (no ANSI color codes)
 codepulse --no-color ./my-project
+
+# Disable colors via NO_COLOR environment variable (https://no-color.org/)
+NO_COLOR=1 codepulse ./my-project
 
 # Start as MCP server for AI agent access
 codepulse --mcp

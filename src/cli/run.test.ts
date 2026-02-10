@@ -322,4 +322,99 @@ describe("run", () => {
     expect(output).not.toMatch(/\x1b\[\d+m/);
     expect(output).toContain("50");
   });
+
+  it("suppresses ANSI color codes when noColorEnv is set in deps", async () => {
+    const boundedMeasurement: AxisMeasurement = {
+      axisId: "duplication",
+      summary: [
+        {
+          descriptor: {
+            id: "duplication_percent",
+            name: "Duplication",
+            unit: "percent",
+            min: 0,
+            max: 100,
+            interpretation: "Percentage of code that is duplicated",
+          },
+          value: 50,
+        },
+      ],
+      files: [],
+    };
+    const deps = createTestDeps({ noColorEnv: true });
+    deps.registry.register(createMockAdapter("jscpd", ["duplication"], boundedMeasurement));
+
+    const exitCode = await run(
+      ["--axis", "duplication", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = deps.stdoutLines[0]!;
+    expect(output).not.toMatch(/\x1b\[\d+m/);
+    expect(output).toContain("50");
+  });
+
+  it("allows colors when noColorEnv is false and --no-color is not passed", async () => {
+    const boundedMeasurement: AxisMeasurement = {
+      axisId: "duplication",
+      summary: [
+        {
+          descriptor: {
+            id: "duplication_percent",
+            name: "Duplication",
+            unit: "percent",
+            min: 0,
+            max: 100,
+            interpretation: "Percentage of code that is duplicated",
+          },
+          value: 50,
+        },
+      ],
+      files: [],
+    };
+    const deps = createTestDeps({ noColorEnv: false });
+    deps.registry.register(createMockAdapter("jscpd", ["duplication"], boundedMeasurement));
+
+    const exitCode = await run(
+      ["--axis", "duplication", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = deps.stdoutLines[0]!;
+    expect(output).toMatch(/\x1b\[\d+m/);
+  });
+
+  it("suppresses colors when both --no-color and noColorEnv are set", async () => {
+    const boundedMeasurement: AxisMeasurement = {
+      axisId: "duplication",
+      summary: [
+        {
+          descriptor: {
+            id: "duplication_percent",
+            name: "Duplication",
+            unit: "percent",
+            min: 0,
+            max: 100,
+            interpretation: "Percentage of code that is duplicated",
+          },
+          value: 50,
+        },
+      ],
+      files: [],
+    };
+    const deps = createTestDeps({ noColorEnv: true });
+    deps.registry.register(createMockAdapter("jscpd", ["duplication"], boundedMeasurement));
+
+    const exitCode = await run(
+      ["--axis", "duplication", "--no-color", "/project"],
+      deps,
+    );
+
+    expect(exitCode).toBe(0);
+    const output = deps.stdoutLines[0]!;
+    expect(output).not.toMatch(/\x1b\[\d+m/);
+    expect(output).toContain("50");
+  });
 });
