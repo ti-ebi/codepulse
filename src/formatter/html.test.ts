@@ -166,6 +166,118 @@ describe("formatHtml", () => {
     expect(output).toMatch(/width:\s*25%/);
   });
 
+  it("uses low-range bar color for values in the lower third", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "duplication",
+          summary: [
+            {
+              descriptor: {
+                id: "dup-pct",
+                name: "Duplication",
+                unit: "percent",
+                min: 0,
+                max: 100,
+                interpretation: "Duplicated code",
+              },
+              value: 10,
+            },
+          ],
+          files: [],
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    // Low-range values should use a distinct bar color
+    expect(output).toMatch(/bar-fill.*style="[^"]*background:\s*#58a6ff/);
+  });
+
+  it("uses mid-range bar color for values in the middle third", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "duplication",
+          summary: [
+            {
+              descriptor: {
+                id: "dup-pct",
+                name: "Duplication",
+                unit: "percent",
+                min: 0,
+                max: 100,
+                interpretation: "Duplicated code",
+              },
+              value: 50,
+            },
+          ],
+          files: [],
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    // Mid-range values should use a distinct bar color
+    expect(output).toMatch(/bar-fill.*style="[^"]*background:\s*#d29922/);
+  });
+
+  it("uses high-range bar color for values in the upper third", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "duplication",
+          summary: [
+            {
+              descriptor: {
+                id: "dup-pct",
+                name: "Duplication",
+                unit: "percent",
+                min: 0,
+                max: 100,
+                interpretation: "Duplicated code",
+              },
+              value: 90,
+            },
+          ],
+          files: [],
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    // High-range values should use a distinct bar color
+    expect(output).toMatch(/bar-fill.*style="[^"]*background:\s*#bc8cff/);
+  });
+
+  it("applies the same range-based bar colors to file-level metrics", () => {
+    const report = makeReport({
+      axes: [
+        {
+          axisId: "duplication",
+          summary: [],
+          files: [
+            {
+              filePath: "/project/src/main.ts",
+              metrics: [
+                {
+                  descriptor: {
+                    id: "dup-pct",
+                    name: "Duplication",
+                    unit: "percent",
+                    min: 0,
+                    max: 100,
+                    interpretation: "Duplicated code",
+                  },
+                  value: 90,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const output = formatHtml(report);
+    expect(output).toMatch(/bar-fill.*style="[^"]*background:\s*#bc8cff/);
+  });
+
   it("does not render a bar for unbounded metrics", () => {
     const report = makeReport({
       axes: [

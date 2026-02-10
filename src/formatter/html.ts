@@ -24,10 +24,19 @@ function escapeHtml(text: string): string {
 }
 
 /**
- * Calculates the bar width percentage for a bounded metric.
+ * CSS colors for magnitude-based bar fills.
+ * These correspond to the ANSI cyan/yellow/magenta used in terminal formatters.
+ * Colors visualize scale position, not judgment (CLAUDE.md boundary).
+ */
+const BAR_COLOR_LOW = "#58a6ff";
+const BAR_COLOR_MID = "#d29922";
+const BAR_COLOR_HIGH = "#bc8cff";
+
+/**
+ * Bar metadata for a bounded metric: width percentage and fill color.
  * Returns null for unbounded metrics or zero-range metrics.
  */
-function barWidthPercent(metric: MetricValue): number | null {
+function barInfo(metric: MetricValue): { width: number; color: string } | null {
   const { min, max } = metric.descriptor;
   if (max === null) {
     return null;
@@ -38,7 +47,18 @@ function barWidthPercent(metric: MetricValue): number | null {
   }
   const clamped = Math.max(min, Math.min(max, metric.value));
   const ratio = (clamped - min) / range;
-  return Math.round(ratio * 100);
+  const width = Math.round(ratio * 100);
+
+  let color: string;
+  if (ratio < 1 / 3) {
+    color = BAR_COLOR_LOW;
+  } else if (ratio < 2 / 3) {
+    color = BAR_COLOR_MID;
+  } else {
+    color = BAR_COLOR_HIGH;
+  }
+
+  return { width, color };
 }
 
 /**
@@ -47,10 +67,10 @@ function barWidthPercent(metric: MetricValue): number | null {
 function renderMetricRow(metric: MetricValue): string {
   const name = escapeHtml(metric.descriptor.name);
   const unit = escapeHtml(metric.descriptor.unit);
-  const width = barWidthPercent(metric);
+  const info = barInfo(metric);
 
-  const barCell = width !== null
-    ? `<td class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width: ${width}%"></div></div></td>`
+  const barCell = info !== null
+    ? `<td class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width: ${info.width}%; background: ${info.color}"></div></div></td>`
     : `<td class="bar-cell"></td>`;
 
   return `<tr><td class="metric-name">${name}</td><td class="metric-value">${metric.value} ${unit}</td>${barCell}</tr>`;
@@ -176,7 +196,6 @@ const CSS = `
       overflow: hidden;
     }
     .bar-fill {
-      background: #58a6ff;
       height: 100%;
       border-radius: 3px;
     }
