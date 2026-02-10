@@ -43,6 +43,17 @@ const KNOWN_FLAGS: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Maps short flag aliases to their long equivalents.
+ */
+const SHORT_TO_LONG: ReadonlyMap<string, string> = new Map([
+  ["-f", "--format"],
+  ["-a", "--axis"],
+  ["-o", "--output"],
+  ["-h", "--help"],
+  ["-V", "--version"],
+]);
+
+/**
  * Parse a CLI argument array into a MeasurementConfig.
  *
  * Expected usage:
@@ -56,29 +67,32 @@ const KNOWN_FLAGS: ReadonlySet<string> = new Set([
  *   --version           Show version
  */
 export function parseArgs(argv: readonly string[]): ParseResult {
+  // Expand short flags to their long equivalents before parsing.
+  const expandedArgv = argv.map((arg) => SHORT_TO_LONG.get(arg) ?? arg);
+
   // Check for --help and --version first (they short-circuit).
-  if (argv.includes("--help")) {
+  if (expandedArgv.includes("--help")) {
     return {
       ok: false,
       error: { kind: "help", message: helpText() },
     };
   }
 
-  if (argv.includes("--version")) {
+  if (expandedArgv.includes("--version")) {
     return {
       ok: false,
       error: { kind: "version", message: "codepulse 0.1.0" },
     };
   }
 
-  if (argv.includes("--mcp")) {
+  if (expandedArgv.includes("--mcp")) {
     return {
       ok: false,
       error: { kind: "mcp", message: "Starting MCP server" },
     };
   }
 
-  if (argv.includes("--list-axes")) {
+  if (expandedArgv.includes("--list-axes")) {
     return {
       ok: false,
       error: { kind: "list-axes", message: listAxesText() },
@@ -93,15 +107,16 @@ export function parseArgs(argv: readonly string[]): ParseResult {
   let noColor = false;
 
   let i = 0;
-  while (i < argv.length) {
-    const arg = argv[i]!;
+  while (i < expandedArgv.length) {
+    const arg = expandedArgv[i]!;
+    const originalArg = argv[i]!;
 
     if (arg === "--format") {
-      const value = argv[i + 1];
+      const value = expandedArgv[i + 1];
       if (value === undefined) {
         return {
           ok: false,
-          error: { kind: "error", message: "--format requires a value" },
+          error: { kind: "error", message: `${originalArg} requires a value` },
         };
       }
       if (!VALID_FORMATS.has(value)) {
@@ -120,11 +135,11 @@ export function parseArgs(argv: readonly string[]): ParseResult {
     }
 
     if (arg === "--axis") {
-      const value = argv[i + 1];
+      const value = expandedArgv[i + 1];
       if (value === undefined) {
         return {
           ok: false,
-          error: { kind: "error", message: "--axis requires a value" },
+          error: { kind: "error", message: `${originalArg} requires a value` },
         };
       }
       if (!AXES.has(value as AxisId)) {
@@ -145,11 +160,11 @@ export function parseArgs(argv: readonly string[]): ParseResult {
     }
 
     if (arg === "--output") {
-      const value = argv[i + 1];
+      const value = expandedArgv[i + 1];
       if (value === undefined) {
         return {
           ok: false,
-          error: { kind: "error", message: "--output requires a value" },
+          error: { kind: "error", message: `${originalArg} requires a value` },
         };
       }
       outputPath = value;
@@ -163,13 +178,13 @@ export function parseArgs(argv: readonly string[]): ParseResult {
       continue;
     }
 
-    if (arg.startsWith("--")) {
+    if (arg.startsWith("-")) {
       if (!KNOWN_FLAGS.has(arg)) {
         return {
           ok: false,
           error: {
             kind: "error",
-            message: `Unknown flag "${arg}"`,
+            message: `Unknown flag "${originalArg}"`,
           },
         };
       }
@@ -250,15 +265,15 @@ function helpText(): string {
     "Measure the internal quality of a codebase.",
     "",
     "Options:",
-    "  --format <format>   Output format (terminal-compact, terminal-rich, json, html)",
-    "  --axis <axis>       Measurement axis to run (repeatable)",
-    "  --output <path>     Write output to file instead of stdout",
-    "                      (format is inferred from .json/.html extension if --format is omitted)",
-    "  --no-color          Disable ANSI color codes in terminal output (also honors NO_COLOR env var)",
-    "  --mcp               Start as MCP server (stdio transport)",
-    "  --list-axes         List available measurement axes",
-    "  --help              Show this help message",
-    "  --version           Show version number",
+    "  -f, --format <format>   Output format (terminal-compact, terminal-rich, json, html)",
+    "  -a, --axis <axis>       Measurement axis to run (repeatable)",
+    "  -o, --output <path>     Write output to file instead of stdout",
+    "                          (format is inferred from .json/.html extension if --format is omitted)",
+    "      --no-color          Disable ANSI color codes in terminal output (also honors NO_COLOR env var)",
+    "      --mcp               Start as MCP server (stdio transport)",
+    "      --list-axes         List available measurement axes",
+    "  -h, --help              Show this help message",
+    "  -V, --version           Show version number",
     "",
     "Axes:",
     ...[...AXES.values()].map(

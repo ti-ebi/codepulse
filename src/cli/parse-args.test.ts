@@ -311,12 +311,128 @@ describe("parseArgs", () => {
     });
   });
 
+  describe("short flag aliases", () => {
+    it("-f is an alias for --format", () => {
+      const result = parseArgs(["-f", "json", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.outputFormat).toBe("json");
+    });
+
+    it("-a is an alias for --axis", () => {
+      const result = parseArgs(["-a", "complexity", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.axes).toEqual(["complexity"]);
+    });
+
+    it("-a supports multiple axes like --axis", () => {
+      const result = parseArgs(["-a", "complexity", "-a", "size", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.axes).toEqual(["complexity", "size"]);
+    });
+
+    it("-a deduplicates repeated axes like --axis", () => {
+      const result = parseArgs(["-a", "complexity", "-a", "complexity", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.axes).toEqual(["complexity"]);
+    });
+
+    it("-o is an alias for --output", () => {
+      const result = parseArgs(["-o", "/tmp/report.json", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.outputPath).toBe("/tmp/report.json");
+      expect(result.value.outputFormat).toBe("json");
+    });
+
+    it("-h is an alias for --help", () => {
+      const result = parseArgs(["-h"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("help");
+    });
+
+    it("-V is an alias for --version", () => {
+      const result = parseArgs(["-V"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("version");
+    });
+
+    it("short flags can be mixed with long flags", () => {
+      const result = parseArgs(["-f", "json", "--axis", "size", "/project"]);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.value.outputFormat).toBe("json");
+      expect(result.value.axes).toEqual(["size"]);
+    });
+
+    it("-f returns an error when no value follows", () => {
+      const result = parseArgs(["/project", "-f"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("-f requires a value");
+    });
+
+    it("-a returns an error when no value follows", () => {
+      const result = parseArgs(["/project", "-a"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("-a requires a value");
+    });
+
+    it("-o returns an error when no value follows", () => {
+      const result = parseArgs(["/project", "-o"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.kind).toBe("error");
+      expect(result.error.message).toContain("-o requires a value");
+    });
+
+    it("-f returns an error for unknown format", () => {
+      const result = parseArgs(["-f", "xml", "/project"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.message).toContain("xml");
+    });
+
+    it("-a returns an error for unknown axis", () => {
+      const result = parseArgs(["-a", "magic", "/project"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.message).toContain("magic");
+    });
+
+    it("short help text mentions short aliases", () => {
+      const result = parseArgs(["-h"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.message).toContain("-f");
+      expect(result.error.message).toContain("-a");
+      expect(result.error.message).toContain("-o");
+      expect(result.error.message).toContain("-h");
+      expect(result.error.message).toContain("-V");
+    });
+  });
+
   describe("unknown flags", () => {
     it("returns an error for unrecognized flags", () => {
       const result = parseArgs(["--unknown", "/project"]);
       expect(result.ok).toBe(false);
       if (result.ok) return;
       expect(result.error.message).toContain("--unknown");
+    });
+
+    it("returns an error for unrecognized short flags", () => {
+      const result = parseArgs(["-x", "/project"]);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.error.message).toContain("-x");
     });
   });
 });

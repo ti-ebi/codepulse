@@ -63,16 +63,16 @@ codepulse [options] <target-path>
 
 ### Options
 
-| Flag | Description |
-|---|---|
-| `--format <format>` | Output format: `terminal-compact` (default), `terminal-rich`, `json`, `html` |
-| `--axis <axis>` | Measurement axis to run (repeatable). Omit to run all available axes |
-| `--output <path>` | Write report to file instead of stdout. Format is inferred from `.json`/`.html` extension if `--format` is omitted |
-| `--no-color` | Disable ANSI color codes in terminal output (also honors `NO_COLOR` env var) |
-| `--mcp` | Start as MCP server (stdio transport) for AI agent integration |
-| `--list-axes` | List available measurement axes with descriptions |
-| `--help` | Show help message |
-| `--version` | Show version number |
+| Flag | Short | Description |
+|---|---|---|
+| `--format <format>` | `-f` | Output format: `terminal-compact` (default), `terminal-rich`, `json`, `html` |
+| `--axis <axis>` | `-a` | Measurement axis to run (repeatable). Omit to run all available axes |
+| `--output <path>` | `-o` | Write report to file instead of stdout. Format is inferred from `.json`/`.html` extension if `--format` is omitted |
+| `--no-color` | | Disable ANSI color codes in terminal output (also honors `NO_COLOR` env var) |
+| `--mcp` | | Start as MCP server (stdio transport) for AI agent integration |
+| `--list-axes` | | List available measurement axes with descriptions |
+| `--help` | `-h` | Show help message |
+| `--version` | `-V` | Show version number |
 
 ### Available Axes
 
@@ -85,13 +85,13 @@ codepulse [options] <target-path>
 codepulse ./my-project
 
 # JSON report for complexity and size only
-codepulse --format json --axis complexity --axis size ./my-project
+codepulse -f json -a complexity -a size ./my-project
 
 # HTML dashboard written to file (format inferred from .html extension)
-codepulse --output report.html ./my-project
+codepulse -o report.html ./my-project
 
 # Rich terminal output for security and dead code
-codepulse --format terminal-rich --axis security --axis dead-code ./src
+codepulse -f terminal-rich -a security -a dead-code ./src
 
 # List available measurement axes
 codepulse --list-axes
