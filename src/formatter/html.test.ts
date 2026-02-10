@@ -602,8 +602,8 @@ describe("formatHtml", () => {
 
     const output = formatHtml(report);
     expect(output).toContain("Warnings");
-    expect(output).toContain("security");
-    expect(output).toContain("consistency");
+    expect(output).toContain("Security");
+    expect(output).toContain("Consistency");
   });
 
   it("does not render warnings section when there are no warnings", () => {

@@ -7,7 +7,7 @@
  */
 
 import type { MeasurementReport } from "../types/measurement.js";
-import { axisName } from "./axis-helpers.js";
+import { axisName, axisNameById } from "./axis-helpers.js";
 
 /**
  * Formats a single metric value with its unit for display.
@@ -88,7 +88,7 @@ export function formatTerminalCompact(report: MeasurementReport): string {
     lines.push("");
     lines.push("Warnings:");
     for (const warning of report.warnings) {
-      lines.push(`  ${warning.axisId}: ${warning.message}`);
+      lines.push(`  ${axisNameById(warning.axisId)}: ${warning.message}`);
     }
   }
 

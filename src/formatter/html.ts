@@ -9,7 +9,7 @@
  */
 
 import type { AxisMeasurement, MeasurementReport, MetricValue } from "../types/measurement.js";
-import { axisName, axisDescription } from "./axis-helpers.js";
+import { axisName, axisNameById, axisDescription } from "./axis-helpers.js";
 
 /**
  * Escapes HTML special characters to prevent XSS in rendered output.
@@ -257,7 +257,7 @@ export function formatHtml(report: MeasurementReport): string {
 
   if (report.warnings.length > 0) {
     const warningItems = report.warnings
-      .map((w) => `<div class="warning-item"><span class="warning-axis">${escapeHtml(w.axisId)}</span>: ${escapeHtml(w.message)}</div>`)
+      .map((w) => `<div class="warning-item"><span class="warning-axis">${escapeHtml(axisNameById(w.axisId))}</span>: ${escapeHtml(w.message)}</div>`)
       .join("\n");
     bodyParts.push(`<section class="warnings-section">\n<h2>Warnings</h2>\n${warningItems}\n</section>`);
   }

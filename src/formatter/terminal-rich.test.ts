@@ -479,8 +479,8 @@ describe("formatTerminalRich", () => {
 
     const output = formatTerminalRich(report);
     expect(output).toContain("Warnings");
-    expect(output).toContain("security");
-    expect(output).toContain("consistency");
+    expect(output).toContain("Security");
+    expect(output).toContain("Consistency");
   });
 
   it("does not display warnings section when there are no warnings", () => {

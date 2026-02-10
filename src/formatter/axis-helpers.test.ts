@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from "vitest";
 import type { AxisMeasurement } from "../types/measurement.js";
-import { axisName, axisDescription } from "./axis-helpers.js";
+import { axisName, axisNameById, axisDescription } from "./axis-helpers.js";
 
 function makeAxis(axisId: string): AxisMeasurement {
   return {
@@ -32,6 +32,18 @@ describe("axisName", () => {
 
   it("falls back to raw axisId for an unknown axis", () => {
     expect(axisName(makeAxis("unknown-axis"))).toBe("unknown-axis");
+  });
+});
+
+describe("axisNameById", () => {
+  it("returns human-readable name for a known axis id", () => {
+    expect(axisNameById("complexity")).toBe("Complexity");
+    expect(axisNameById("dead-code")).toBe("Dead Code");
+    expect(axisNameById("dependency-health")).toBe("Dependency Health");
+  });
+
+  it("falls back to raw id for an unknown axis", () => {
+    expect(axisNameById("unknown-axis" as never)).toBe("unknown-axis");
   });
 });
 

@@ -7,7 +7,7 @@
  */
 
 import type { MeasurementReport, MetricValue } from "../types/measurement.js";
-import { axisName, axisDescription } from "./axis-helpers.js";
+import { axisName, axisNameById, axisDescription } from "./axis-helpers.js";
 
 const BAR_WIDTH = 20;
 
@@ -110,7 +110,7 @@ export function formatTerminalRich(report: MeasurementReport): string {
     lines.push("Warnings");
     lines.push("");
     for (const warning of report.warnings) {
-      lines.push(`  ${warning.axisId}: ${warning.message}`);
+      lines.push(`  ${axisNameById(warning.axisId)}: ${warning.message}`);
     }
   }
 

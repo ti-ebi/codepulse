@@ -300,7 +300,7 @@ describe("formatTerminalCompact", () => {
 
     const output = formatTerminalCompact(report);
     expect(output).toContain("Warnings");
-    expect(output).toContain("security");
+    expect(output).toContain("Security");
   });
 
   it("does not display warnings section when there are no warnings", () => {
