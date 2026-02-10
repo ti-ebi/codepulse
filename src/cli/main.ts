@@ -9,6 +9,7 @@
  */
 
 import * as node_fs from "node:fs/promises";
+import * as node_path from "node:path";
 import * as node_process from "node:process";
 import { AdapterRegistry } from "../adapter/registry.js";
 import { createSccAdapter } from "../adapter/scc.js";
@@ -39,6 +40,7 @@ const deps: CliDeps = {
   stderr: (text: string) => node_process.stderr.write(text + "\n"),
   registry,
   writeFn: async (path: string, content: string) => {
+    await node_fs.mkdir(node_path.dirname(path), { recursive: true });
     await node_fs.writeFile(path, content, "utf-8");
   },
   statFn: async (path: string) => {
